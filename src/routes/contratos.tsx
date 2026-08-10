@@ -1,3 +1,6 @@
+import { useState } from "react";
+import { toast } from "sonner";
+import { CreateDialog } from "@/components/create-dialog";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { FileSignature, Download, Plus } from "lucide-react";
 import { PageHeader, Panel, Pill, StatCard, estadoTone } from "@/components/ui-kit";
@@ -16,13 +19,18 @@ export const Route = createFileRoute("/contratos")({
 });
 
 function Contratos() {
+  const [novoOpen, setNovoOpen] = useState(false);
+
   return (
     <>
       <PageHeader
         title="Contratos"
         description="Modelos, envios e assinaturas"
         actions={
-          <button className="flex h-9 items-center gap-2 rounded-lg bg-primary px-3.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90">
+          <button
+            onClick={() => setNovoOpen(true)}
+            className="flex h-9 items-center gap-2 rounded-lg bg-primary px-3.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+          >
             <Plus className="h-4 w-4" /> Novo contrato
           </button>
         }
@@ -52,6 +60,21 @@ function Contratos() {
           ))}
         </ul>
       </Panel>
+      <CreateDialog
+        open={novoOpen}
+        onClose={() => setNovoOpen(false)}
+        title="Novo contrato"
+        description="Gera um contrato a partir de um modelo."
+        campos={[
+          { nome: "espetaculo", label: "Espetáculo", obrigatorio: true, colSpan: 2, placeholder: "Festas da Senhora da Agonia" },
+          { nome: "cliente", label: "Cliente", placeholder: "Comissão de Festas" },
+          { nome: "valor", label: "Valor (€)", tipo: "numero", placeholder: "4200" },
+          { nome: "modelo", label: "Modelo", tipo: "select", opcoes: ["Atuação padrão", "Festa privada", "Município", "Agência"] },
+          { nome: "prazo", label: "Data de assinatura", tipo: "data" },
+        ]}
+        onSubmit={(v) => toast.success("Contrato gerado", { description: v["nome"] ?? v["espetaculo"] ?? "Guardado neste protótipo." })}
+      />
+
     </>
   );
 }

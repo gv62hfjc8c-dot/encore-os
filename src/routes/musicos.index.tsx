@@ -1,3 +1,5 @@
+import { toast } from "sonner";
+import { CreateDialog } from "@/components/create-dialog";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { Plus, Search, Phone, Mail } from "lucide-react";
@@ -28,13 +30,18 @@ function Musicos() {
       (m.nome + m.instrumentos.join(" ") + m.banda).toLowerCase().includes(q.toLowerCase()),
   );
 
+  const [novoOpen, setNovoOpen] = useState(false);
+
   return (
     <>
       <PageHeader
         title="Músicos"
         description={`${musicos.length} perfis · ${musicos.filter((m) => m.disponibilidade === "Disponível").length} disponíveis`}
         actions={
-          <button className="flex h-9 items-center gap-2 rounded-lg bg-primary px-3.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90">
+          <button
+            onClick={() => setNovoOpen(true)}
+            className="flex h-9 items-center gap-2 rounded-lg bg-primary px-3.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+          >
             <Plus className="h-4 w-4" /> Novo músico
           </button>
         }
@@ -99,6 +106,21 @@ function Musicos() {
           </Link>
         ))}
       </div>
+      <CreateDialog
+        open={novoOpen}
+        onClose={() => setNovoOpen(false)}
+        title="Novo músico"
+        description="Adiciona uma pessoa ao elenco."
+        campos={[
+          { nome: "nome", label: "Nome", obrigatorio: true, colSpan: 2, placeholder: "Marta Nogueira" },
+          { nome: "funcao", label: "Função", placeholder: "Voz principal" },
+          { nome: "banda", label: "Banda", placeholder: "Encore Live Band" },
+          { nome: "telefone", label: "Telefone", placeholder: "+351 9…" },
+          { nome: "email", label: "Email", placeholder: "nome@encoreos.pt" },
+        ]}
+        onSubmit={(v) => toast.success("Músico adicionado", { description: v["nome"] ?? v["espetaculo"] ?? "Guardado neste protótipo." })}
+      />
+
     </>
   );
 }

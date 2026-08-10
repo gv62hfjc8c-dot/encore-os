@@ -1,3 +1,5 @@
+import { toast } from "sonner";
+import { CreateDialog } from "@/components/create-dialog";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { ListMusic, Plus, Search, Music4, GraduationCap, Layers } from "lucide-react";
@@ -39,13 +41,18 @@ function Repertorio() {
     return a + (mm ?? 0) + (ss ?? 0) / 60;
   }, 0);
 
+  const [novoOpen, setNovoOpen] = useState(false);
+
   return (
     <>
       <PageHeader
         title="Repertório"
         description="O centro musical da operação — tom, energia, materiais e domínio de cada tema."
         actions={
-          <button className="flex h-9 items-center gap-2 rounded-lg bg-primary px-3.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90">
+          <button
+            onClick={() => setNovoOpen(true)}
+            className="flex h-9 items-center gap-2 rounded-lg bg-primary px-3.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+          >
             <Plus className="h-4 w-4" /> Nova música
           </button>
         }
@@ -165,6 +172,22 @@ function Repertorio() {
           </Panel>
         </div>
       </div>
+      <CreateDialog
+        open={novoOpen}
+        onClose={() => setNovoOpen(false)}
+        title="Nova música"
+        description="Regista um tema no repertório."
+        campos={[
+          { nome: "nome", label: "Título", obrigatorio: true, placeholder: "Amor de Verão" },
+          { nome: "artista", label: "Artista", placeholder: "Quim Barreiros" },
+          { nome: "tom", label: "Tom", placeholder: "Am" },
+          { nome: "bpm", label: "BPM", tipo: "numero", placeholder: "128" },
+          { nome: "energia", label: "Energia (1-10)", tipo: "numero", placeholder: "8" },
+          { nome: "estilo", label: "Estilo", placeholder: "Pimba" },
+        ]}
+        onSubmit={(v) => toast.success("Música adicionada ao repertório", { description: v["nome"] ?? v["espetaculo"] ?? "Guardado neste protótipo." })}
+      />
+
     </>
   );
 }

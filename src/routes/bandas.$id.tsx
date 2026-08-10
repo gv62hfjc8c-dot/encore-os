@@ -40,9 +40,12 @@ function BandaDetalhe() {
         title={banda.nome}
         description={`${banda.genero} · ${banda.membros} músicos · cachet médio ${formatEUR(banda.cachetMedio)}`}
         actions={
-          <button className="h-9 rounded-lg bg-primary px-3.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90">
+          <Link
+            to="/espetaculos/novo"
+            className="flex h-9 items-center rounded-lg bg-primary px-3.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+          >
             Agendar
-          </button>
+          </Link>
         }
       />
 

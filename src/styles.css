@@ -84,7 +84,7 @@
   --secondary: oklch(0.27 0.027 264);
   --secondary-foreground: oklch(0.95 0.005 250);
   --muted: oklch(0.27 0.027 264);
-  --muted-foreground: oklch(0.68 0.022 258);
+  --muted-foreground: oklch(0.73 0.022 258);
   --accent: oklch(0.293 0.03 264);
   --accent-foreground: oklch(0.985 0.002 250);
   --success: oklch(0.727 0.157 155.6);
@@ -199,4 +199,25 @@
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+}
+
+@layer base {
+  /* Foco visível e consistente em toda a app */
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  /* Respeitar quem prefere menos movimento */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 }

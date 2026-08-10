@@ -34,13 +34,13 @@ export function PageHeader({
           ))}
         </div>
       )}
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 sm:flex sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
-          <h1 className="truncate text-2xl font-semibold tracking-tight sm:text-[28px]">{title}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight sm:truncate sm:text-[28px]">{title}</h1>
           {description && <p className="mt-1 text-sm text-muted-foreground">{description}</p>}
           {meta && <div className="mt-3 flex flex-wrap items-center gap-2">{meta}</div>}
         </div>
-        {actions && <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>}
+        {actions && <div className="flex flex-wrap items-center gap-2 sm:shrink-0">{actions}</div>}
       </div>
     </div>
   );
@@ -198,6 +198,45 @@ export function EmptyHint({ children }: { children: ReactNode }) {
     </div>
   );
 }
+
+/**
+ * Estado vazio com ícone, mensagem e ação opcional.
+ * Usar sempre que uma lista pode ficar sem itens.
+ */
+export function EmptyState({
+  icon: Icon,
+  title,
+  description,
+  action,
+  compact,
+}: {
+  icon?: React.ComponentType<{ className?: string }>;
+  title: string;
+  description?: string;
+  action?: ReactNode;
+  compact?: boolean;
+}) {
+  return (
+    <div
+      className={cn(
+        "flex flex-col items-center justify-center text-center",
+        compact ? "gap-2 px-5 py-8" : "gap-3 px-6 py-12",
+      )}
+    >
+      {Icon && (
+        <span className="grid h-10 w-10 place-items-center rounded-xl border border-border bg-elevated/60 text-muted-foreground">
+          <Icon className="h-4 w-4" />
+        </span>
+      )}
+      <p className="text-sm font-medium">{title}</p>
+      {description && (
+        <p className="max-w-xs text-xs leading-relaxed text-muted-foreground">{description}</p>
+      )}
+      {action && <div className="mt-1">{action}</div>}
+    </div>
+  );
+}
+
 
 /* ---------------- novos primitivos ---------------- */
 

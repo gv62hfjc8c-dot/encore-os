@@ -10,6 +10,8 @@ import {
   Wallet,
   Building2,
   Map,
+  Megaphone,
+  ListMusic as ListMusicTab,
   BookOpen,
   Settings,
   Search,
@@ -64,6 +66,7 @@ const nav: { group: string; items: NavItem[] }[] = [
     { to: "/crm", label: "Organizações", icon: Building2 },
     { to: "/contratos", label: "Contratos", icon: FileSignature },
     { to: "/financeiro", label: "Financeiro", icon: Wallet },
+    { to: "/marketing", label: "Marketing", icon: Megaphone },
   ]},
   { group: "Sistema", items: [
     { to: "/roadmap", label: "Roadmap", icon: Map },
@@ -422,8 +425,55 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </header>
 
-        <main className="min-w-0 flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">{children}</main>
+        <main className="min-w-0 flex-1 px-4 pb-24 pt-6 sm:px-6 lg:px-8 lg:pb-8 lg:pt-8">
+          {children}
+        </main>
       </div>
+
+      <MobileTabBar />
     </div>
+  );
+}
+
+/* ---------------- Navegação inferior (mobile) ---------------- */
+
+const tabs: NavItem[] = [
+  { to: "/", label: "Hoje", icon: Sun, exact: true },
+  { to: "/agenda", label: "Agenda", icon: CalendarDays },
+  { to: "/espetaculos", label: "Espetáculos", icon: Sparkles },
+  { to: "/repertorio", label: "Repertório", icon: ListMusicTab },
+  { to: "/live", label: "Ao vivo", icon: Radio },
+];
+
+function MobileTabBar() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  return (
+    <nav
+      aria-label="Navegação principal"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden"
+    >
+      <ul className="grid grid-cols-5">
+        {tabs.map((t) => {
+          const active = t.exact
+            ? pathname === t.to
+            : pathname === t.to || pathname.startsWith(t.to + "/");
+          return (
+            <li key={t.to}>
+              <Link
+                to={t.to}
+                className={cn(
+                  "flex flex-col items-center gap-1 py-2.5 text-[10px] font-medium transition-colors",
+                  active ? "text-primary" : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                <t.icon className="h-[18px] w-[18px]" />
+                <span className="truncate">{t.label}</span>
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
   );
 }

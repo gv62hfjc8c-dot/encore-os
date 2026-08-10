@@ -25,6 +25,9 @@ import {
 import { PageHeader, Panel, Pill, estadoTone, Tabs, Field, Avatar, Progress, Meter } from "@/components/ui-kit";
 import { espetaculos, formatEUR, getEquipamento, getMusica, getMusico, type Espetaculo } from "@/data/mock";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import { downloadCSV, downloadDoc } from "@/lib/export";
+import { usePersistedState } from "@/hooks/use-persisted-state";
 
 export const Route = createFileRoute("/espetaculos/$id")({
   loader: ({ params }) => {
@@ -56,6 +59,7 @@ export const Route = createFileRoute("/espetaculos/$id")({
 function EspetaculoDetalhe() {
   const { esp } = Route.useLoaderData() as { esp: Espetaculo };
   const [tab, setTab] = useState("resumo");
+  const [novasMsgs, setNovasMsgs] = usePersistedState<typeof esp.mensagens>(`encore:chat:${esp.id}`, []);
   const [feitos, setFeitos] = useState<string[]>(
     esp.checklists.flatMap((c) => c.itens.filter((i) => i.feito).map((i) => `${c.id}:${i.id}`)),
   );
@@ -103,7 +107,15 @@ function EspetaculoDetalhe() {
         }
         actions={
           <>
-            <button className="flex h-9 items-center gap-2 rounded-lg border border-border bg-surface px-3 text-sm transition-colors hover:bg-elevated">
+            <button
+              onClick={() => {
+                if (typeof navigator !== "undefined" && navigator.clipboard) {
+                  void navigator.clipboard.writeText(window.location.href);
+                }
+                toast.success("Ligação copiada", { description: "Partilhe a ficha do espetáculo com a equipa." });
+              }}
+              className="flex h-9 items-center gap-2 rounded-lg border border-border bg-surface px-3 text-sm transition-colors hover:bg-elevated"
+            >
               <Share2 className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Partilhar</span>
             </button>
             <Link
@@ -112,7 +124,16 @@ function EspetaculoDetalhe() {
             >
               <Radio className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Modo ao vivo</span>
             </Link>
-            <button className="flex h-9 items-center gap-2 rounded-lg bg-primary px-3.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90">
+            <button
+              onClick={() =>
+                downloadDoc(`folha-de-sala-${esp.id}.txt`, `Folha de sala · ${esp.nome}`, [
+                  { titulo: "Espetáculo", linhas: [`${esp.banda} · ${esp.data} ${esp.hora}`, esp.local, `Cliente: ${esp.cliente}`] },
+                  { titulo: "Timeline", linhas: esp.timeline.map((t) => `${t.hora} — ${t.titulo}: ${t.detalhe}`) },
+                  { titulo: "Setlist", linhas: esp.setlist.flatMap((b) => [b.bloco, ...b.musicas.map((id) => `  · ${getMusica(id)?.nome ?? id}`)]) },
+                ])
+              }
+              className="flex h-9 items-center gap-2 rounded-lg bg-primary px-3.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+            >
               <Download className="h-4 w-4" /> <span className="hidden sm:inline">Folha de sala</span>
             </button>
           </>
@@ -459,7 +480,17 @@ function EspetaculoDetalhe() {
                     <p className="text-xs text-muted-foreground">{d.tipo}</p>
                   </div>
                   <Pill tone={estadoTone(d.estado)}>{d.estado}</Pill>
-                  <Download className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  <button
+                    aria-label={`Descarregar ${d.nome}`}
+                    onClick={() =>
+                      downloadDoc(`${d.nome.replace(/\s+/g, "-").toLowerCase()}.txt`, d.nome, [
+                        { titulo: "Documento", linhas: [`Tipo: ${d.tipo}`, `Estado: ${d.estado}`, `Espetáculo: ${esp.nome}`] },
+                      ])
+                    }
+                    className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                  >
+                    <Download className="h-4 w-4 shrink-0" />
+                  </button>
                 </li>
               ))}
             </ul>
@@ -467,9 +498,9 @@ function EspetaculoDetalhe() {
         )}
 
         {tab === "comunicacao" && (
-          <Panel title="Canal do espetáculo" subtitle={`${esp.equipa.length + 2} participantes`} padded={false}>
+          <Panel title="Canal do espetáculo" subtitle={`${esp.equipa.length + 2} participantes · ${esp.mensagens.length + novasMsgs.length} mensagens`} padded={false}>
             <ul className="space-y-5 p-5">
-              {esp.mensagens.map((m) => (
+              {[...esp.mensagens, ...novasMsgs].map((m) => (
                 <li key={m.id} className="flex gap-3">
                   <Avatar iniciais={m.iniciais} size="sm" tone="neutral" />
                   <div className="min-w-0 flex-1">
@@ -493,10 +524,44 @@ function EspetaculoDetalhe() {
                 value={msg}
                 onChange={(e) => setMsg(e.target.value)}
                 placeholder="Escrever para a equipa…"
+                onKeyDown={(e) => {
+                  if (e.key !== "Enter") return;
+                  const texto = msg.trim();
+                  if (!texto) return;
+                  setNovasMsgs((p) => [
+                    ...p,
+                    {
+                      id: `m-${Date.now()}`,
+                      autor: "Rui Marques",
+                      iniciais: "RM",
+                      texto,
+                      quando: new Date().toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" }),
+                      lidoPor: 1,
+                    },
+                  ]);
+                  setMsg("");
+                }}
                 className="h-9 min-w-0 flex-1 rounded-lg border border-border bg-surface px-3 text-sm outline-none placeholder:text-muted-foreground focus:border-input"
               />
               <button
-                onClick={() => setMsg("")}
+                aria-label="Enviar mensagem"
+                onClick={() => {
+                  const texto = msg.trim();
+                  if (!texto) return;
+                  setNovasMsgs((p) => [
+                    ...p,
+                    {
+                      id: `m-${Date.now()}`,
+                      autor: "Rui Marques",
+                      iniciais: "RM",
+                      texto,
+                      quando: new Date().toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" }),
+                      lidoPor: 1,
+                    },
+                  ]);
+                  setMsg("");
+                  toast.success("Mensagem enviada para o canal do espetáculo");
+                }}
                 className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-primary text-primary-foreground transition-opacity hover:opacity-90"
               >
                 <Send className="h-4 w-4" />
@@ -552,7 +617,27 @@ function EspetaculoDetalhe() {
                 <ul className="space-y-2 text-sm">
                   {["Relatório PDF para o cliente", "Mapa de cachets", "Registo de equipamento"].map((x) => (
                     <li key={x}>
-                      <button className="flex w-full items-center gap-2 rounded-lg border border-border px-3 py-2 text-left transition-colors hover:bg-elevated">
+                      <button
+                        onClick={() => {
+                          if (x.startsWith("Mapa")) {
+                            downloadCSV(
+                              `cachets-${esp.id}.csv`,
+                              esp.equipa.map((m) => ({ Musico: getMusico(m.musicoId)?.nome ?? m.musicoId, Papel: m.papel, Confirmado: m.confirmado ? "Sim" : "Não" })),
+                            );
+                          } else if (x.startsWith("Registo")) {
+                            downloadCSV(
+                              `equipamento-${esp.id}.csv`,
+                              esp.equipamentos.map((id) => ({ Artigo: getEquipamento(id)?.nome ?? id, Estado: getEquipamento(id)?.estado ?? "—" })),
+                            );
+                          } else {
+                            downloadDoc(`relatorio-${esp.id}.txt`, `Relatório · ${esp.nome}`, [
+                              { titulo: "Resumo", linhas: [`Público estimado: ${esp.publicoEstimado}`, `Margem: ${formatEUR(margem)}`, `Local: ${esp.local}`] },
+                              { titulo: "Timeline", linhas: esp.timeline.map((t) => `${t.hora} — ${t.titulo}`) },
+                            ]);
+                          }
+                        }}
+                        className="flex w-full items-center gap-2 rounded-lg border border-border px-3 py-2 text-left transition-colors hover:bg-elevated"
+                      >
                         <Zap className="h-3.5 w-3.5 shrink-0 text-primary" />
                         <span className="min-w-0 flex-1 truncate">{x}</span>
                         <Download className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />

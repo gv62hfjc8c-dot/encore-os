@@ -1,3 +1,5 @@
+import { toast } from "sonner";
+import { CreateDialog } from "@/components/create-dialog";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { Plus, Search } from "lucide-react";
@@ -20,13 +22,18 @@ function Bandas() {
   const [q, setQ] = useState("");
   const lista = bandas.filter((b) => (b.nome + b.genero).toLowerCase().includes(q.toLowerCase()));
 
+  const [novoOpen, setNovoOpen] = useState(false);
+
   return (
     <>
       <PageHeader
         title="Bandas"
         description={`${bandas.length} formações ativas`}
         actions={
-          <button className="flex h-9 items-center gap-2 rounded-lg bg-primary px-3.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90">
+          <button
+            onClick={() => setNovoOpen(true)}
+            className="flex h-9 items-center gap-2 rounded-lg bg-primary px-3.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+          >
             <Plus className="h-4 w-4" /> Nova banda
           </button>
         }
@@ -82,6 +89,21 @@ function Bandas() {
           <p className="text-center text-sm text-muted-foreground">Nenhuma banda encontrada.</p>
         </Panel>
       )}
+      <CreateDialog
+        open={novoOpen}
+        onClose={() => setNovoOpen(false)}
+        title="Nova banda"
+        description="Cria uma formação no protótipo."
+        campos={[
+          { nome: "nome", label: "Nome da banda", obrigatorio: true, colSpan: 2, placeholder: "Encore Live Band" },
+          { nome: "genero", label: "Género", placeholder: "Baile / Pop-rock" },
+          { nome: "membros", label: "Nº de músicos", tipo: "numero", placeholder: "9" },
+          { nome: "cachet", label: "Cachet médio (€)", tipo: "numero", placeholder: "3500" },
+          { nome: "base", label: "Base", placeholder: "V. N. Gaia" },
+        ]}
+        onSubmit={(v) => toast.success("Banda criada", { description: v["nome"] ?? v["espetaculo"] ?? "Guardado neste protótipo." })}
+      />
+
     </>
   );
 }

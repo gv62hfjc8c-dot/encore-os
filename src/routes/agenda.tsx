@@ -62,10 +62,13 @@ function Agenda() {
                 </button>
               ))}
             </div>
-            <button className="flex h-9 items-center gap-2 rounded-lg bg-primary px-3.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90">
+            <Link
+              to="/espetaculos/novo"
+              className="flex h-9 items-center gap-2 rounded-lg bg-primary px-3.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+            >
               <Plus className="h-4 w-4" />
               <span className="hidden sm:inline">Agendar</span>
-            </button>
+            </Link>
           </>
         }
       />

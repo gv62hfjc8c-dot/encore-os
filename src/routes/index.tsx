@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import {
   AlertTriangle,
   ArrowRight,
@@ -12,14 +12,27 @@ import {
   Clock,
   Euro,
   MapPin,
+  Plus,
+  ShieldCheck,
   Users2,
   Wind,
   Truck,
   Radio,
   FileSignature,
 } from "lucide-react";
-import { PageHeader, Panel, Pill, StatCard, estadoTone, Avatar, Progress } from "@/components/ui-kit";
+import { toast } from "sonner";
+import {
+  PageHeader,
+  Panel,
+  Pill,
+  StatCard,
+  estadoTone,
+  Avatar,
+  Progress,
+  EmptyState,
+} from "@/components/ui-kit";
 import { espetaculos, formatEUR, musicos, tarefas, atividade, ensaios, HOJE, getMusico } from "@/data/mock";
+import { usePersistedState } from "@/hooks/use-persisted-state";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
@@ -54,7 +67,10 @@ const diasAte = (data: string) =>
   Math.round((new Date(data).getTime() - new Date(HOJE).getTime()) / 86_400_000);
 
 function Dashboard() {
-  const [feitas, setFeitas] = useState<string[]>(tarefas.filter((t) => t.feito).map((t) => t.id));
+  const [feitas, setFeitas] = usePersistedState<string[]>(
+    "encore:tarefas-feitas",
+    tarefas.filter((t) => t.feito).map((t) => t.id),
+  );
 
   const proximos = useMemo(
     () =>
@@ -80,7 +96,7 @@ function Dashboard() {
     .reduce((a, e) => a + e.preco, 0);
 
   const toggle = (id: string) =>
-    setFeitas((f) => (f.includes(id) ? f.filter((x) => x !== id) : [...f, id]));
+    setFeitas((f: string[]) => (f.includes(id) ? f.filter((x) => x !== id) : [...f, id]));
 
   return (
     <>
@@ -94,6 +110,12 @@ function Dashboard() {
               className="flex h-9 items-center gap-2 rounded-lg border border-border bg-surface px-3 text-sm transition-colors hover:bg-elevated"
             >
               <CalendarDays className="h-4 w-4" /> Agenda
+            </Link>
+            <Link
+              to="/espetaculos/novo"
+              className="flex h-9 items-center gap-2 rounded-lg border border-border bg-surface px-3 text-sm transition-colors hover:bg-elevated"
+            >
+              <Plus className="h-4 w-4" /> Novo
             </Link>
             <Link
               to="/live"
@@ -211,34 +233,44 @@ function Dashboard() {
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-6">
           <Panel
             title="Riscos operacionais"
             subtitle="Resolver antes que se tornem problema em palco"
             padded={false}
             action={<Pill tone="danger">{riscos.length}</Pill>}
           >
-            <ul className="divide-y divide-border">
-              {riscos.map((r, i) => (
-                <li key={i}>
-                  <Link
-                    to="/espetaculos/$id"
-                    params={{ id: r.esp.id }}
-                    className="flex items-start gap-3 px-5 py-3.5 transition-colors hover:bg-accent/40"
-                  >
-                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm">{r.texto}</p>
-                      <p className="mt-0.5 text-xs text-muted-foreground">
-                        {r.esp.nome} · {new Date(r.esp.data).toLocaleDateString("pt-PT")}
-                      </p>
-                    </div>
-                    <ArrowRight className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            {riscos.length === 0 ? (
+              <EmptyState
+                icon={ShieldCheck}
+                title="Sem riscos abertos"
+                description="Todos os espetáculos no horizonte estão sem alertas de produção."
+                compact
+              />
+            ) : (
+              <ul className="divide-y divide-border">
+                {riscos.map((r, i) => (
+                  <li key={i}>
+                    <Link
+                      to="/espetaculos/$id"
+                      params={{ id: r.esp.id }}
+                      className="flex items-start gap-3 px-5 py-3.5 transition-colors hover:bg-accent/40"
+                    >
+                      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm">{r.texto}</p>
+                        <p className="mt-0.5 text-xs text-muted-foreground">
+                          {r.esp.nome} · {new Date(r.esp.data).toLocaleDateString("pt-PT")}
+                        </p>
+                      </div>
+                      <ArrowRight className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
           </Panel>
+
 
           <Panel title="Próximos espetáculos" padded={false} action={<Link to="/espetaculos" className="text-xs text-primary hover:underline">Ver todos</Link>}>
             <ul className="divide-y divide-border">
@@ -296,7 +328,7 @@ function Dashboard() {
           </Panel>
         </div>
 
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-6">
           <Panel title="As minhas tarefas" subtitle="Atribuídas a si" padded={false}>
             <ul className="divide-y divide-border">
               {tarefas.map((t) => {
@@ -324,39 +356,64 @@ function Dashboard() {
           </Panel>
 
           <Panel title="Equipa por confirmar" padded={false}>
-            <ul className="divide-y divide-border">
-              {porConfirmar.map((p, i) => (
-                <li key={i} className="flex items-center gap-3 px-5 py-3">
-                  <Avatar iniciais={p.musico.iniciais} size="sm" tone="warning" />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium">{p.musico.nome}</p>
-                    <p className="truncate text-xs text-muted-foreground">
-                      {p.papel} · {p.esp.nome}
-                    </p>
-                  </div>
-                  <button className="shrink-0 rounded-md border border-border px-2 py-1 text-xs text-muted-foreground transition-colors hover:text-foreground">
-                    Lembrar
-                  </button>
-                </li>
-              ))}
-            </ul>
+            {porConfirmar.length === 0 ? (
+              <EmptyState
+                icon={CheckCircle2}
+                title="Equipa toda confirmada"
+                description="Nenhuma convocatória pendente nos próximos espetáculos."
+                compact
+              />
+            ) : (
+              <ul className="divide-y divide-border">
+                {porConfirmar.map((p, i) => (
+                  <li key={i} className="flex items-center gap-3 px-5 py-3">
+                    <Avatar iniciais={p.musico.iniciais} size="sm" tone="warning" />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium">{p.musico.nome}</p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {p.papel} · {p.esp.nome}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() =>
+                        toast.success("Lembrete enviado", {
+                          description: `${p.musico.nome} · ${p.esp.nome}`,
+                        })
+                      }
+                      className="shrink-0 rounded-md border border-border px-2 py-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
+                    >
+                      Lembrar
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </Panel>
 
           <Panel title="Indisponibilidades" padded={false}>
-            <ul className="divide-y divide-border">
-              {indisponiveis.map((m) => (
-                <li key={m.id} className="flex items-center gap-3 px-5 py-3">
-                  <Avatar iniciais={m.iniciais} size="sm" tone="danger" />
-                  <div className="min-w-0 flex-1">
-                    <Link to="/musicos/$id" params={{ id: m.id }} className="truncate text-sm font-medium hover:text-primary">
-                      {m.nome}
-                    </Link>
-                    <p className="truncate text-xs text-muted-foreground">{m.motivo}</p>
-                  </div>
-                  <Pill tone={estadoTone(m.disponibilidade)}>{m.disponibilidade}</Pill>
-                </li>
-              ))}
-            </ul>
+            {indisponiveis.length === 0 ? (
+              <EmptyState
+                icon={Users2}
+                title="Toda a gente disponível"
+                description="Sem ausências registadas para o período em curso."
+                compact
+              />
+            ) : (
+              <ul className="divide-y divide-border">
+                {indisponiveis.map((m) => (
+                  <li key={m.id} className="flex items-center gap-3 px-5 py-3">
+                    <Avatar iniciais={m.iniciais} size="sm" tone="danger" />
+                    <div className="min-w-0 flex-1">
+                      <Link to="/musicos/$id" params={{ id: m.id }} className="truncate text-sm font-medium hover:text-primary">
+                        {m.nome}
+                      </Link>
+                      <p className="truncate text-xs text-muted-foreground">{m.motivo}</p>
+                    </div>
+                    <Pill tone={estadoTone(m.disponibilidade)}>{m.disponibilidade}</Pill>
+                  </li>
+                ))}
+              </ul>
+            )}
           </Panel>
 
           <Panel title="Próximos ensaios" padded={false}>

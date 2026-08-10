@@ -1,3 +1,5 @@
+import { toast } from "sonner";
+import { CreateDialog } from "@/components/create-dialog";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import {
@@ -56,13 +58,18 @@ function CRM() {
   const receitaTotal = clientes.reduce((a, c) => a + c.valor, 0);
   const maxValor = Math.max(...clientes.map((c) => c.valor));
 
+  const [novoOpen, setNovoOpen] = useState(false);
+
   return (
     <>
       <PageHeader
         title="Organizações"
         description="Quem contrata os espetáculos — comissões, municípios, agências, empresas e promotores"
         actions={
-          <button className="flex h-9 items-center gap-2 rounded-lg bg-primary px-3.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90">
+          <button
+            onClick={() => setNovoOpen(true)}
+            className="flex h-9 items-center gap-2 rounded-lg bg-primary px-3.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+          >
             <Plus className="h-4 w-4" /> Nova organização
           </button>
         }
@@ -222,6 +229,21 @@ function CRM() {
           </Panel>
         </div>
       </div>
+      <CreateDialog
+        open={novoOpen}
+        onClose={() => setNovoOpen(false)}
+        title="Nova organização"
+        description="Regista um cliente ou parceiro."
+        campos={[
+          { nome: "nome", label: "Nome", obrigatorio: true, colSpan: 2, placeholder: "Comissão de Festas de …" },
+          { nome: "tipo", label: "Tipo", tipo: "select", opcoes: ["Comissão de Festas", "Município", "Agência", "Promotor", "Empresa", "Casamentos"] },
+          { nome: "localidade", label: "Localidade", placeholder: "Viana do Castelo" },
+          { nome: "contacto", label: "Pessoa de contacto", placeholder: "Nome do responsável" },
+          { nome: "email", label: "Email", placeholder: "geral@…" },
+        ]}
+        onSubmit={(v) => toast.success("Organização criada", { description: v["nome"] ?? v["espetaculo"] ?? "Guardado neste protótipo." })}
+      />
+
     </>
   );
 }

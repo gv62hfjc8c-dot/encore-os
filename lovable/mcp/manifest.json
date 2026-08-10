@@ -1,0 +1,142 @@
+{
+  "version": 1,
+  "sdk_version": "0.26.1",
+  "path": "/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://qchvuoubpuuikinlbhib.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "encore-os-dashboard",
+      "version": "0.1.0",
+      "title": "Encore OS Dashboard"
+    },
+    "tools": [
+      {
+        "name": "list_shows",
+        "title": "Listar espetáculos",
+        "description": "Lista os espetáculos do Encore OS com data, local, organização, estado e cachê. Filtra opcionalmente por estado.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "estado": {
+              "type": "string",
+              "description": "Estado a filtrar: Confirmado, Proposta, Reservado, Concluído ou Cancelado."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_show",
+        "title": "Detalhe do espetáculo",
+        "description": "Devolve o detalhe completo de um espetáculo: equipa, setlist, logística, checklists, timeline e financeiro.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "ID do espetáculo, por exemplo o devolvido por list_shows."
+            }
+          },
+          "required": [
+            "id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "search_repertoire",
+        "title": "Pesquisar repertório",
+        "description": "Pesquisa o repertório musical do Encore OS por nome, artista, género ou estilo, devolvendo tom, BPM, energia e domínio da banda.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "description": "Texto livre a procurar no nome, artista ou género."
+            },
+            "limite": {
+              "type": "integer",
+              "description": "Número máximo de músicas a devolver (predefinido 25)."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_equipment",
+        "title": "Listar equipamentos",
+        "description": "Lista o inventário técnico do Encore OS (som, luz, backline) com estado, localização e manutenção. Filtra opcionalmente por estado ou categoria.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "estado": {
+              "type": "string",
+              "description": "Estado do equipamento, por exemplo Operacional ou Manutenção."
+            },
+            "categoria": {
+              "type": "string",
+              "description": "Categoria do equipamento, por exemplo Som, Luz ou Backline."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_roster",
+        "title": "Listar bandas e músicos",
+        "description": "Lista as bandas do Encore OS e os músicos do plantel, com instrumento, disponibilidade e função.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "banda": {
+              "type": "string",
+              "description": "Nome ou ID da banda para filtrar os músicos."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}

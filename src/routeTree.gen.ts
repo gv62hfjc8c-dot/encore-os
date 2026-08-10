@@ -11,24 +11,32 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AgendaRouteImport } from './routes/agenda'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ContratosRouteImport } from './routes/contratos'
 import { Route as CrmRouteImport } from './routes/crm'
 import { Route as DefinicoesRouteImport } from './routes/definicoes'
 import { Route as DocumentacaoRouteImport } from './routes/documentacao'
 import { Route as EncoreAiRouteImport } from './routes/encore-ai'
-import { Route as EquipamentosRouteImport } from './routes/equipamentos'
 import { Route as FinanceiroRouteImport } from './routes/financeiro'
 import { Route as LiveRouteImport } from './routes/live'
 import { Route as MarketingRouteImport } from './routes/marketing'
+import { Route as McpRouteImport } from './routes/mcp'
 import { Route as RoadmapRouteImport } from './routes/roadmap'
+import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
+import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as BandasIndexRouteImport } from './routes/bandas.index'
 import { Route as BandasIdRouteImport } from './routes/bandas.$id'
+import { Route as EquipamentosIndexRouteImport } from './routes/equipamentos.index'
+import { Route as EquipamentosIdRouteImport } from './routes/equipamentos.$id'
 import { Route as EspetaculosIndexRouteImport } from './routes/espetaculos.index'
 import { Route as EspetaculosIdRouteImport } from './routes/espetaculos.$id'
+import { Route as EspetaculosNovoRouteImport } from './routes/espetaculos.novo'
 import { Route as MusicosIndexRouteImport } from './routes/musicos.index'
 import { Route as MusicosIdRouteImport } from './routes/musicos.$id'
 import { Route as RepertorioIndexRouteImport } from './routes/repertorio.index'
 import { Route as RepertorioIdRouteImport } from './routes/repertorio.$id'
+import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
+import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -38,6 +46,11 @@ const IndexRoute = IndexRouteImport.update({
 const AgendaRoute = AgendaRouteImport.update({
   id: '/agenda',
   path: '/agenda',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContratosRoute = ContratosRouteImport.update({
@@ -65,11 +78,6 @@ const EncoreAiRoute = EncoreAiRouteImport.update({
   path: '/encore-ai',
   getParentRoute: () => rootRouteImport,
 } as any)
-const EquipamentosRoute = EquipamentosRouteImport.update({
-  id: '/equipamentos',
-  path: '/equipamentos',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const FinanceiroRoute = FinanceiroRouteImport.update({
   id: '/financeiro',
   path: '/financeiro',
@@ -85,11 +93,28 @@ const MarketingRoute = MarketingRouteImport.update({
   path: '/marketing',
   getParentRoute: () => rootRouteImport,
 } as any)
+const McpRoute = McpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RoadmapRoute = RoadmapRouteImport.update({
   id: '/roadmap',
   path: '/roadmap',
   getParentRoute: () => rootRouteImport,
 } as any)
+const Char91DotmcpChar93ListToolsRoute =
+  Char91DotmcpChar93ListToolsRouteImport.update({
+    id: '/.mcp/list-tools',
+    path: '/.mcp/list-tools',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const Char91DotwellKnownChar93OauthProtectedResourceRoute =
+  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
+    id: '/.well-known/oauth-protected-resource',
+    path: '/.well-known/oauth-protected-resource',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const BandasIndexRoute = BandasIndexRouteImport.update({
   id: '/bandas/',
   path: '/bandas/',
@@ -100,6 +125,16 @@ const BandasIdRoute = BandasIdRouteImport.update({
   path: '/bandas/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EquipamentosIndexRoute = EquipamentosIndexRouteImport.update({
+  id: '/equipamentos/',
+  path: '/equipamentos/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EquipamentosIdRoute = EquipamentosIdRouteImport.update({
+  id: '/equipamentos/$id',
+  path: '/equipamentos/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EspetaculosIndexRoute = EspetaculosIndexRouteImport.update({
   id: '/espetaculos/',
   path: '/espetaculos/',
@@ -108,6 +143,11 @@ const EspetaculosIndexRoute = EspetaculosIndexRouteImport.update({
 const EspetaculosIdRoute = EspetaculosIdRouteImport.update({
   id: '/espetaculos/$id',
   path: '/espetaculos/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EspetaculosNovoRoute = EspetaculosNovoRouteImport.update({
+  id: '/espetaculos/novo',
+  path: '/espetaculos/novo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MusicosIndexRoute = MusicosIndexRouteImport.update({
@@ -130,164 +170,231 @@ const RepertorioIdRoute = RepertorioIdRouteImport.update({
   path: '/repertorio/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
+  id: '/.lovable/oauth/consent',
+  path: '/.lovable/oauth/consent',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Char91DotmcpChar93InvokeToolToolRoute =
+  Char91DotmcpChar93InvokeToolToolRouteImport.update({
+    id: '/.mcp/invoke-tool/$tool',
+    path: '/.mcp/invoke-tool/$tool',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/agenda': typeof AgendaRoute
+  '/auth': typeof AuthRoute
   '/contratos': typeof ContratosRoute
   '/crm': typeof CrmRoute
   '/definicoes': typeof DefinicoesRoute
   '/documentacao': typeof DocumentacaoRoute
   '/encore-ai': typeof EncoreAiRoute
-  '/equipamentos': typeof EquipamentosRoute
   '/financeiro': typeof FinanceiroRoute
   '/live': typeof LiveRoute
   '/marketing': typeof MarketingRoute
+  '/mcp': typeof McpRoute
   '/roadmap': typeof RoadmapRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/bandas/$id': typeof BandasIdRoute
+  '/equipamentos/$id': typeof EquipamentosIdRoute
   '/espetaculos/$id': typeof EspetaculosIdRoute
+  '/espetaculos/novo': typeof EspetaculosNovoRoute
   '/musicos/$id': typeof MusicosIdRoute
   '/repertorio/$id': typeof RepertorioIdRoute
   '/bandas/': typeof BandasIndexRoute
+  '/equipamentos/': typeof EquipamentosIndexRoute
   '/espetaculos/': typeof EspetaculosIndexRoute
   '/musicos/': typeof MusicosIndexRoute
   '/repertorio/': typeof RepertorioIndexRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/agenda': typeof AgendaRoute
+  '/auth': typeof AuthRoute
   '/contratos': typeof ContratosRoute
   '/crm': typeof CrmRoute
   '/definicoes': typeof DefinicoesRoute
   '/documentacao': typeof DocumentacaoRoute
   '/encore-ai': typeof EncoreAiRoute
-  '/equipamentos': typeof EquipamentosRoute
   '/financeiro': typeof FinanceiroRoute
   '/live': typeof LiveRoute
   '/marketing': typeof MarketingRoute
+  '/mcp': typeof McpRoute
   '/roadmap': typeof RoadmapRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/bandas/$id': typeof BandasIdRoute
+  '/equipamentos/$id': typeof EquipamentosIdRoute
   '/espetaculos/$id': typeof EspetaculosIdRoute
+  '/espetaculos/novo': typeof EspetaculosNovoRoute
   '/musicos/$id': typeof MusicosIdRoute
   '/repertorio/$id': typeof RepertorioIdRoute
   '/bandas': typeof BandasIndexRoute
+  '/equipamentos': typeof EquipamentosIndexRoute
   '/espetaculos': typeof EspetaculosIndexRoute
   '/musicos': typeof MusicosIndexRoute
   '/repertorio': typeof RepertorioIndexRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/agenda': typeof AgendaRoute
+  '/auth': typeof AuthRoute
   '/contratos': typeof ContratosRoute
   '/crm': typeof CrmRoute
   '/definicoes': typeof DefinicoesRoute
   '/documentacao': typeof DocumentacaoRoute
   '/encore-ai': typeof EncoreAiRoute
-  '/equipamentos': typeof EquipamentosRoute
   '/financeiro': typeof FinanceiroRoute
   '/live': typeof LiveRoute
   '/marketing': typeof MarketingRoute
+  '/mcp': typeof McpRoute
   '/roadmap': typeof RoadmapRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/bandas/$id': typeof BandasIdRoute
+  '/equipamentos/$id': typeof EquipamentosIdRoute
   '/espetaculos/$id': typeof EspetaculosIdRoute
+  '/espetaculos/novo': typeof EspetaculosNovoRoute
   '/musicos/$id': typeof MusicosIdRoute
   '/repertorio/$id': typeof RepertorioIdRoute
   '/bandas/': typeof BandasIndexRoute
+  '/equipamentos/': typeof EquipamentosIndexRoute
   '/espetaculos/': typeof EspetaculosIndexRoute
   '/musicos/': typeof MusicosIndexRoute
   '/repertorio/': typeof RepertorioIndexRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/agenda'
+    | '/auth'
     | '/contratos'
     | '/crm'
     | '/definicoes'
     | '/documentacao'
     | '/encore-ai'
-    | '/equipamentos'
     | '/financeiro'
     | '/live'
     | '/marketing'
+    | '/mcp'
     | '/roadmap'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/bandas/$id'
+    | '/equipamentos/$id'
     | '/espetaculos/$id'
+    | '/espetaculos/novo'
     | '/musicos/$id'
     | '/repertorio/$id'
     | '/bandas/'
+    | '/equipamentos/'
     | '/espetaculos/'
     | '/musicos/'
     | '/repertorio/'
+    | '/.lovable/oauth/consent'
+    | '/.mcp/invoke-tool/$tool'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/agenda'
+    | '/auth'
     | '/contratos'
     | '/crm'
     | '/definicoes'
     | '/documentacao'
     | '/encore-ai'
-    | '/equipamentos'
     | '/financeiro'
     | '/live'
     | '/marketing'
+    | '/mcp'
     | '/roadmap'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/bandas/$id'
+    | '/equipamentos/$id'
     | '/espetaculos/$id'
+    | '/espetaculos/novo'
     | '/musicos/$id'
     | '/repertorio/$id'
     | '/bandas'
+    | '/equipamentos'
     | '/espetaculos'
     | '/musicos'
     | '/repertorio'
+    | '/.lovable/oauth/consent'
+    | '/.mcp/invoke-tool/$tool'
   id:
     | '__root__'
     | '/'
     | '/agenda'
+    | '/auth'
     | '/contratos'
     | '/crm'
     | '/definicoes'
     | '/documentacao'
     | '/encore-ai'
-    | '/equipamentos'
     | '/financeiro'
     | '/live'
     | '/marketing'
+    | '/mcp'
     | '/roadmap'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/bandas/$id'
+    | '/equipamentos/$id'
     | '/espetaculos/$id'
+    | '/espetaculos/novo'
     | '/musicos/$id'
     | '/repertorio/$id'
     | '/bandas/'
+    | '/equipamentos/'
     | '/espetaculos/'
     | '/musicos/'
     | '/repertorio/'
+    | '/.lovable/oauth/consent'
+    | '/.mcp/invoke-tool/$tool'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AgendaRoute: typeof AgendaRoute
+  AuthRoute: typeof AuthRoute
   ContratosRoute: typeof ContratosRoute
   CrmRoute: typeof CrmRoute
   DefinicoesRoute: typeof DefinicoesRoute
   DocumentacaoRoute: typeof DocumentacaoRoute
   EncoreAiRoute: typeof EncoreAiRoute
-  EquipamentosRoute: typeof EquipamentosRoute
   FinanceiroRoute: typeof FinanceiroRoute
   LiveRoute: typeof LiveRoute
   MarketingRoute: typeof MarketingRoute
+  McpRoute: typeof McpRoute
   RoadmapRoute: typeof RoadmapRoute
+  Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
+  Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   BandasIdRoute: typeof BandasIdRoute
+  EquipamentosIdRoute: typeof EquipamentosIdRoute
   EspetaculosIdRoute: typeof EspetaculosIdRoute
+  EspetaculosNovoRoute: typeof EspetaculosNovoRoute
   MusicosIdRoute: typeof MusicosIdRoute
   RepertorioIdRoute: typeof RepertorioIdRoute
   BandasIndexRoute: typeof BandasIndexRoute
+  EquipamentosIndexRoute: typeof EquipamentosIndexRoute
   EspetaculosIndexRoute: typeof EspetaculosIndexRoute
   MusicosIndexRoute: typeof MusicosIndexRoute
   RepertorioIndexRoute: typeof RepertorioIndexRoute
+  DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
+  Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -304,6 +411,13 @@ declare module '@tanstack/react-router' {
       path: '/agenda'
       fullPath: '/agenda'
       preLoaderRoute: typeof AgendaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contratos': {
@@ -341,13 +455,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EncoreAiRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/equipamentos': {
-      id: '/equipamentos'
-      path: '/equipamentos'
-      fullPath: '/equipamentos'
-      preLoaderRoute: typeof EquipamentosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/financeiro': {
       id: '/financeiro'
       path: '/financeiro'
@@ -369,11 +476,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MarketingRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/mcp': {
+      id: '/mcp'
+      path: '/mcp'
+      fullPath: '/mcp'
+      preLoaderRoute: typeof McpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/roadmap': {
       id: '/roadmap'
       path: '/roadmap'
       fullPath: '/roadmap'
       preLoaderRoute: typeof RoadmapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.mcp/list-tools': {
+      id: '/.mcp/list-tools'
+      path: '/.mcp/list-tools'
+      fullPath: '/.mcp/list-tools'
+      preLoaderRoute: typeof Char91DotmcpChar93ListToolsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.well-known/oauth-protected-resource': {
+      id: '/.well-known/oauth-protected-resource'
+      path: '/.well-known/oauth-protected-resource'
+      fullPath: '/.well-known/oauth-protected-resource'
+      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/bandas/': {
@@ -390,6 +518,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BandasIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/equipamentos/': {
+      id: '/equipamentos/'
+      path: '/equipamentos'
+      fullPath: '/equipamentos/'
+      preLoaderRoute: typeof EquipamentosIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/equipamentos/$id': {
+      id: '/equipamentos/$id'
+      path: '/equipamentos/$id'
+      fullPath: '/equipamentos/$id'
+      preLoaderRoute: typeof EquipamentosIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/espetaculos/': {
       id: '/espetaculos/'
       path: '/espetaculos'
@@ -402,6 +544,13 @@ declare module '@tanstack/react-router' {
       path: '/espetaculos/$id'
       fullPath: '/espetaculos/$id'
       preLoaderRoute: typeof EspetaculosIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/espetaculos/novo': {
+      id: '/espetaculos/novo'
+      path: '/espetaculos/novo'
+      fullPath: '/espetaculos/novo'
+      preLoaderRoute: typeof EspetaculosNovoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/musicos/': {
@@ -432,30 +581,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RepertorioIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/.lovable/oauth/consent': {
+      id: '/.lovable/oauth/consent'
+      path: '/.lovable/oauth/consent'
+      fullPath: '/.lovable/oauth/consent'
+      preLoaderRoute: typeof DotlovableOauthConsentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.mcp/invoke-tool/$tool': {
+      id: '/.mcp/invoke-tool/$tool'
+      path: '/.mcp/invoke-tool/$tool'
+      fullPath: '/.mcp/invoke-tool/$tool'
+      preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AgendaRoute: AgendaRoute,
+  AuthRoute: AuthRoute,
   ContratosRoute: ContratosRoute,
   CrmRoute: CrmRoute,
   DefinicoesRoute: DefinicoesRoute,
   DocumentacaoRoute: DocumentacaoRoute,
   EncoreAiRoute: EncoreAiRoute,
-  EquipamentosRoute: EquipamentosRoute,
   FinanceiroRoute: FinanceiroRoute,
   LiveRoute: LiveRoute,
   MarketingRoute: MarketingRoute,
+  McpRoute: McpRoute,
   RoadmapRoute: RoadmapRoute,
+  Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
+  Char91DotwellKnownChar93OauthProtectedResourceRoute:
+    Char91DotwellKnownChar93OauthProtectedResourceRoute,
   BandasIdRoute: BandasIdRoute,
+  EquipamentosIdRoute: EquipamentosIdRoute,
   EspetaculosIdRoute: EspetaculosIdRoute,
+  EspetaculosNovoRoute: EspetaculosNovoRoute,
   MusicosIdRoute: MusicosIdRoute,
   RepertorioIdRoute: RepertorioIdRoute,
   BandasIndexRoute: BandasIndexRoute,
+  EquipamentosIndexRoute: EquipamentosIndexRoute,
   EspetaculosIndexRoute: EspetaculosIndexRoute,
   MusicosIndexRoute: MusicosIndexRoute,
   RepertorioIndexRoute: RepertorioIndexRoute,
+  DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
+  Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
