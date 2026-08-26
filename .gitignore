@@ -33,3 +33,5 @@ dist-ssr
 *.sw?
 .env
 .env.*
+supabase/.temp/
+supabase/.branches/

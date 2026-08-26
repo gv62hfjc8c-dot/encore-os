@@ -7,12 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.15"
-  }
-  public: {
+  graphql_public: {
     Tables: {
       [_ in never]: never
     }
@@ -20,10 +15,153 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
+  public: {
+    Tables: {
+      organization_memberships: {
+        Row: {
+          created_at: string
+          id: string
+          is_admin: boolean
+          membership_type: Database["public"]["Enums"]["organization_membership_type"]
+          organization_id: string
+          person_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_admin?: boolean
+          membership_type: Database["public"]["Enums"]["organization_membership_type"]
+          organization_id: string
+          person_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_admin?: boolean
+          membership_type?: Database["public"]["Enums"]["organization_membership_type"]
+          organization_id?: string
+          person_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_memberships_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "organization_memberships_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "persons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organizations: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      persons: {
+        Row: {
+          auth_user_id: string
+          created_at: string
+          first_name: string | null
+          id: string
+          last_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          auth_user_id: string
+          created_at?: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          auth_user_id?: string
+          created_at?: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      create_organization: {
+        Args: { p_organization_name: string }
+        Returns: {
+          membership_id: string
+          organization_id: string
+          organization_name: string
+        }[]
+      }
+      current_person_id: { Args: never; Returns: string }
+      current_person_organizations: {
+        Args: never
+        Returns: {
+          is_admin: boolean
+          membership_id: string
+          membership_type: Database["public"]["Enums"]["organization_membership_type"]
+          organization_id: string
+          organization_name: string
+        }[]
+      }
+      is_organization_admin: {
+        Args: { target_organization_id: string }
+        Returns: boolean
+      }
+      is_organization_member: {
+        Args: { target_organization_id: string }
+        Returns: boolean
+      }
+    }
+    Enums: {
+      organization_membership_type: "member" | "freelancer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -149,7 +287,12 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  public: {
+  graphql_public: {
     Enums: {},
+  },
+  public: {
+    Enums: {
+      organization_membership_type: ["member", "freelancer"],
+    },
   },
 } as const
