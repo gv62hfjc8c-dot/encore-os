@@ -19,9 +19,10 @@ jobs:
       - run: npm run build
       - run: npm run typecheck
       - uses: supabase/setup-cli@v1
+        id: supabase
         with:
           version: 2.117.0
       - run: supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor
       - run: node --test tests/integration/supabase.mjs
-      - if: always()
+      - if: always() && steps.supabase.outcome == 'success'
         run: supabase stop --no-backup

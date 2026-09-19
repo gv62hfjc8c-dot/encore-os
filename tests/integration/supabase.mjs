@@ -139,6 +139,70 @@ test("real Auth → PostgREST → RLS → invitation → revocation", async () =
       .setHeader("x-organization-id", org);
     assert.ifError(stale.error);
     assert.deepEqual(stale.data, []);
+    // Two administrators concurrently demoting themselves cannot leave zero admins.
+    const concurrentOrg = await rpc(a.client, "create_organization", {
+      p_organization_name: "Concurrent admin test",
+    });
+    assert.ifError(concurrentOrg.error);
+    const tenant = concurrentOrg.data[0].organization_id;
+    organizations.push(tenant);
+    const adminInvite = await rpc(
+      a.client,
+      "create_organization_invitation",
+      {
+        p_organization_id: tenant,
+        p_email: b.email,
+        p_membership_type: "member",
+        p_is_admin: true,
+      },
+      tenant,
+    );
+    assert.ifError(adminInvite.error);
+    const simultaneousAcceptance = await Promise.all([
+      rpc(b.client, "accept_organization_invitation", {
+        p_token: adminInvite.data[0].token,
+      }),
+      rpc(b.client, "accept_organization_invitation", {
+        p_token: adminInvite.data[0].token,
+      }),
+    ]);
+    assert.equal(
+      simultaneousAcceptance.filter((result) => !result.error).length,
+      1,
+    );
+    const bOrgs = await rpc(b.client, "current_person_organizations", {});
+    assert.ifError(bOrgs.error);
+    const bMembership = bOrgs.data.find(
+      (row) => row.organization_id === tenant,
+    ).membership_id;
+    const demotions = await Promise.all([
+      rpc(
+        a.client,
+        "change_organization_membership",
+        {
+          p_organization_id: tenant,
+          p_membership_id: concurrentOrg.data[0].membership_id,
+          p_membership_type: "member",
+          p_is_admin: false,
+          p_remove: false,
+        },
+        tenant,
+      ),
+      rpc(
+        b.client,
+        "change_organization_membership",
+        {
+          p_organization_id: tenant,
+          p_membership_id: bMembership,
+          p_membership_type: "member",
+          p_is_admin: false,
+          p_remove: false,
+        },
+        tenant,
+      ),
+    ]);
+    assert.equal(demotions.filter((result) => !result.error).length, 1);
+    assert.equal(demotions.find((result) => result.error).error.code, "23514");
     const anonymous = createClient(url, key, options);
     assert.ok(
       (
