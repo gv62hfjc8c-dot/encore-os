@@ -46,9 +46,7 @@ export async function getCurrentPerson(): Promise<Person | null> {
 export async function getMyOrganizations(): Promise<
   OrganizationWithMembership[]
 > {
-  const { data, error } = await supabase.rpc(
-    "current_person_organizations",
-  );
+  const { data, error } = await supabase.rpc("current_person_organizations");
 
   if (error) {
     throw error;
@@ -97,4 +95,81 @@ export async function createOrganization(
       is_admin: true,
     },
   };
+}
+// Every organizational request captures its context at construction time.
+// No shared mutable client header can switch an in-flight request's tenant.
+export async function getOrganizationMembers(organizationId: string) {
+  const { data, error } = await supabase
+    .from("organization_memberships")
+    .select("*")
+    .eq("organization_id", organizationId)
+    .setHeader("x-organization-id", organizationId);
+  if (error) throw error;
+  return data;
+}
+export async function renameOrganization(organizationId: string, name: string) {
+  const { data, error } = await supabase
+    .from("organizations")
+    .update({ name: name.trim() })
+    .eq("id", organizationId)
+    .select("id")
+    .setHeader("x-organization-id", organizationId);
+  if (error) throw error;
+  if (!data?.length)
+    throw new Error("Sem permissão para alterar esta organização.");
+}
+export async function inviteToOrganization(
+  organizationId: string,
+  email: string,
+  type: "member" | "freelancer",
+  admin: boolean,
+) {
+  const { data, error } = await supabase
+    .rpc("create_organization_invitation", {
+      p_organization_id: organizationId,
+      p_email: email,
+      p_membership_type: type,
+      p_is_admin: admin,
+    })
+    .setHeader("x-organization-id", organizationId);
+  if (error) throw error;
+  if (!data?.[0]) throw new Error("Não foi possível criar o convite.");
+  return data[0];
+}
+export async function acceptInvitation(token: string) {
+  const { data, error } = await supabase.rpc("accept_organization_invitation", {
+    p_token: token.trim(),
+  });
+  if (error) throw error;
+  return data;
+}
+export async function revokeInvitation(
+  organizationId: string,
+  invitationId: string,
+) {
+  const { error } = await supabase
+    .rpc("revoke_organization_invitation", {
+      p_organization_id: organizationId,
+      p_invitation_id: invitationId,
+    })
+    .setHeader("x-organization-id", organizationId);
+  if (error) throw error;
+}
+export async function changeMembership(
+  organizationId: string,
+  membershipId: string,
+  type: "member" | "freelancer",
+  admin: boolean,
+  remove = false,
+) {
+  const { error } = await supabase
+    .rpc("change_organization_membership", {
+      p_organization_id: organizationId,
+      p_membership_id: membershipId,
+      p_membership_type: type,
+      p_is_admin: admin,
+      p_remove: remove,
+    })
+    .setHeader("x-organization-id", organizationId);
+  if (error) throw error;
 }

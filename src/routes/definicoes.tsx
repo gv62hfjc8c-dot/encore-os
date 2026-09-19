@@ -1,3 +1,4 @@
+import { OrganizationSettings } from "@/components/organization-settings";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { PageHeader, Panel, Pill } from "@/components/ui-kit";
@@ -7,15 +8,28 @@ export const Route = createFileRoute("/definicoes")({
   head: () => ({
     meta: [
       { title: "Definições · Encore OS" },
-      { name: "description", content: "Preferências da organização, equipa, faturação e notificações." },
+      {
+        name: "description",
+        content:
+          "Preferências da organização, equipa, faturação e notificações.",
+      },
       { property: "og:title", content: "Definições · Encore OS" },
-      { property: "og:description", content: "Configuração da sua conta Encore OS." },
+      {
+        property: "og:description",
+        content: "Configuração da sua conta Encore OS.",
+      },
     ],
   }),
-  component: Definicoes,
+  component: OrganizationSettings,
 });
 
-const seccoes = ["Organização", "Equipa", "Notificações", "Faturação", "Aparência"];
+const seccoes = [
+  "Organização",
+  "Equipa",
+  "Notificações",
+  "Faturação",
+  "Aparência",
+];
 
 function Toggle({ on }: { on: boolean }) {
   const [v, setV] = useState(on);
@@ -42,7 +56,10 @@ function Definicoes() {
 
   return (
     <>
-      <PageHeader title="Definições" description="Configuração da conta e da organização" />
+      <PageHeader
+        title="Definições"
+        description="Configuração da conta e da organização"
+      />
 
       <div className="grid gap-6 lg:grid-cols-[200px_minmax(0,1fr)]">
         <aside className="panel h-fit p-2">
@@ -53,7 +70,9 @@ function Definicoes() {
                   onClick={() => setSec(s)}
                   className={cn(
                     "w-full rounded-lg px-3 py-2 text-left text-sm transition-colors",
-                    sec === s ? "bg-accent text-foreground" : "text-muted-foreground hover:text-foreground",
+                    sec === s
+                      ? "bg-accent text-foreground"
+                      : "text-muted-foreground hover:text-foreground",
                   )}
                 >
                   {s}
@@ -74,7 +93,9 @@ function Definicoes() {
                   ["Email geral", "geral@encoreos.pt"],
                 ].map(([l, v]) => (
                   <label key={l} className="block">
-                    <span className="text-xs uppercase tracking-wider text-muted-foreground">{l}</span>
+                    <span className="text-xs uppercase tracking-wider text-muted-foreground">
+                      {l}
+                    </span>
                     <input
                       defaultValue={v}
                       className="mt-1.5 h-9 w-full rounded-lg border border-border bg-elevated px-3 text-sm outline-none transition-colors focus:border-primary"
@@ -92,9 +113,14 @@ function Definicoes() {
                   ["Tiago Ferraz", "Produção"],
                   ["Sofia Brandão", "Leitura"],
                 ].map(([n, r]) => (
-                  <li key={n} className="flex items-center justify-between py-3 text-sm">
+                  <li
+                    key={n}
+                    className="flex items-center justify-between py-3 text-sm"
+                  >
                     <span>{n}</span>
-                    <Pill tone={r === "Admin" ? "primary" : "neutral"}>{r}</Pill>
+                    <Pill tone={r === "Admin" ? "primary" : "neutral"}>
+                      {r}
+                    </Pill>
                   </li>
                 ))}
               </ul>
@@ -108,7 +134,10 @@ function Definicoes() {
                   ["Alertas de manutenção", false],
                   ["Resumo semanal por email", true],
                 ].map(([l, v]) => (
-                  <li key={String(l)} className="flex items-center justify-between gap-4 py-3 text-sm">
+                  <li
+                    key={String(l)}
+                    className="flex items-center justify-between gap-4 py-3 text-sm"
+                  >
                     <span className="min-w-0">{l}</span>
                     <Toggle on={Boolean(v)} />
                   </li>
@@ -121,11 +150,15 @@ function Definicoes() {
                 <div className="flex items-center justify-between rounded-lg border border-border bg-elevated p-4">
                   <div>
                     <p className="font-medium">Plano Pro</p>
-                    <p className="text-xs text-muted-foreground">49 €/mês · até 10 bandas</p>
+                    <p className="text-xs text-muted-foreground">
+                      49 €/mês · até 10 bandas
+                    </p>
                   </div>
                   <Pill tone="success">Ativo</Pill>
                 </div>
-                <p className="text-muted-foreground">Próxima renovação a 1 de Setembro de 2026.</p>
+                <p className="text-muted-foreground">
+                  Próxima renovação a 1 de Setembro de 2026.
+                </p>
               </div>
             )}
 
@@ -136,7 +169,10 @@ function Definicoes() {
                   ["Animações reduzidas", false],
                   ["Densidade compacta", false],
                 ].map(([l, v]) => (
-                  <li key={String(l)} className="flex items-center justify-between gap-4 py-3 text-sm">
+                  <li
+                    key={String(l)}
+                    className="flex items-center justify-between gap-4 py-3 text-sm"
+                  >
                     <span>{l}</span>
                     <Toggle on={Boolean(v)} />
                   </li>

@@ -1,17 +1,13 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
-
-function safeNext(value: unknown): string {
-  if (typeof value !== "string") return "/";
-  if (!value.startsWith("/") || value.startsWith("//")) return "/";
-  return value;
-}
+import { safeNext } from "@/lib/identity-state";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
-  validateSearch: (s: Record<string, unknown>) => ({ next: safeNext(s['next']) }),
+  validateSearch: (s: Record<string, unknown>) => ({
+    next: safeNext(s["next"]),
+  }),
   head: () => ({
     meta: [
       { title: "Entrar · Encore OS" },
@@ -57,15 +53,22 @@ function AuthPage() {
       const { error: signUpError } = await supabase.auth.signUp({
         email,
         password,
-        options: { emailRedirectTo: new URL(next, window.location.origin).toString() },
+        options: {
+          emailRedirectTo: new URL(next, window.location.origin).toString(),
+        },
       });
       setBusy(false);
       if (signUpError) return setError(signUpError.message);
-      setInfo("Conta criada. Verifique o email para confirmar, depois inicie sessão.");
+      setInfo(
+        "Conta criada. Verifique o email para confirmar, depois inicie sessão.",
+      );
       setMode("signin");
       return;
     }
-    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
     setBusy(false);
     if (signInError) return setError(signInError.message);
     window.location.replace(next);
@@ -73,12 +76,11 @@ function AuthPage() {
 
   async function onGoogle() {
     setError(null);
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: new URL(next, window.location.origin).toString(),
+    const result = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: new URL(next, window.location.origin).toString() },
     });
     if (result.error) return setError(result.error.message);
-    if (result.redirected) return;
-    window.location.replace(next);
   }
 
   return (
@@ -88,7 +90,7 @@ function AuthPage() {
           {mode === "signin" ? "Entrar no Encore OS" : "Criar conta Encore OS"}
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          A sessão é necessária para autorizar integrações de agentes.
+          Uma identidade pessoal, várias organizações.
         </p>
 
         <button
@@ -100,7 +102,8 @@ function AuthPage() {
         </button>
 
         <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
-          <span className="h-px flex-1 bg-border" /> ou <span className="h-px flex-1 bg-border" />
+          <span className="h-px flex-1 bg-border" /> ou{" "}
+          <span className="h-px flex-1 bg-border" />
         </div>
 
         <form onSubmit={onSubmit} className="space-y-3">
@@ -115,7 +118,7 @@ function AuthPage() {
           <input
             type="password"
             required
-            minLength={6}
+            minLength={8}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Palavra-passe"
@@ -149,7 +152,7 @@ function AuthPage() {
             className="underline-offset-4 hover:underline"
             onClick={() => navigate({ to: "/" })}
           >
-            Voltar ao protótipo
+            Voltar
           </button>
         </div>
       </div>
