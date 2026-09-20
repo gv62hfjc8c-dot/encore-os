@@ -1,0 +1,28 @@
+name: Identity foundation
+on:
+  push:
+    branches: [main, "feat/identity-*"]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - run: npm run typecheck
+      - uses: supabase/setup-cli@v1
+        id: supabase
+        with:
+          version: 2.117.0
+      - run: supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor
+      - run: node --test tests/integration/supabase.mjs
+      - if: always() && steps.supabase.outcome == 'success'
+        run: supabase stop --no-backup

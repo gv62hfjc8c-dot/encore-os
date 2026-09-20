@@ -21,6 +21,8 @@ import { Route as FinanceiroRouteImport } from './routes/financeiro'
 import { Route as LiveRouteImport } from './routes/live'
 import { Route as MarketingRouteImport } from './routes/marketing'
 import { Route as McpRouteImport } from './routes/mcp'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as PessoalRouteImport } from './routes/pessoal'
 import { Route as RoadmapRouteImport } from './routes/roadmap'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
@@ -96,6 +98,16 @@ const MarketingRoute = MarketingRouteImport.update({
 const McpRoute = McpRouteImport.update({
   id: '/mcp',
   path: '/mcp',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PessoalRoute = PessoalRouteImport.update({
+  id: '/pessoal',
+  path: '/pessoal',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RoadmapRoute = RoadmapRouteImport.update({
@@ -195,6 +207,8 @@ export interface FileRoutesByFullPath {
   '/live': typeof LiveRoute
   '/marketing': typeof MarketingRoute
   '/mcp': typeof McpRoute
+  '/onboarding': typeof OnboardingRoute
+  '/pessoal': typeof PessoalRoute
   '/roadmap': typeof RoadmapRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -225,6 +239,8 @@ export interface FileRoutesByTo {
   '/live': typeof LiveRoute
   '/marketing': typeof MarketingRoute
   '/mcp': typeof McpRoute
+  '/onboarding': typeof OnboardingRoute
+  '/pessoal': typeof PessoalRoute
   '/roadmap': typeof RoadmapRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -256,6 +272,8 @@ export interface FileRoutesById {
   '/live': typeof LiveRoute
   '/marketing': typeof MarketingRoute
   '/mcp': typeof McpRoute
+  '/onboarding': typeof OnboardingRoute
+  '/pessoal': typeof PessoalRoute
   '/roadmap': typeof RoadmapRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -288,6 +306,8 @@ export interface FileRouteTypes {
     | '/live'
     | '/marketing'
     | '/mcp'
+    | '/onboarding'
+    | '/pessoal'
     | '/roadmap'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
@@ -318,6 +338,8 @@ export interface FileRouteTypes {
     | '/live'
     | '/marketing'
     | '/mcp'
+    | '/onboarding'
+    | '/pessoal'
     | '/roadmap'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
@@ -348,6 +370,8 @@ export interface FileRouteTypes {
     | '/live'
     | '/marketing'
     | '/mcp'
+    | '/onboarding'
+    | '/pessoal'
     | '/roadmap'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
@@ -379,6 +403,8 @@ export interface RootRouteChildren {
   LiveRoute: typeof LiveRoute
   MarketingRoute: typeof MarketingRoute
   McpRoute: typeof McpRoute
+  OnboardingRoute: typeof OnboardingRoute
+  PessoalRoute: typeof PessoalRoute
   RoadmapRoute: typeof RoadmapRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -481,6 +507,20 @@ declare module '@tanstack/react-router' {
       path: '/mcp'
       fullPath: '/mcp'
       preLoaderRoute: typeof McpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pessoal': {
+      id: '/pessoal'
+      path: '/pessoal'
+      fullPath: '/pessoal'
+      preLoaderRoute: typeof PessoalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/roadmap': {
@@ -611,6 +651,8 @@ const rootRouteChildren: RootRouteChildren = {
   LiveRoute: LiveRoute,
   MarketingRoute: MarketingRoute,
   McpRoute: McpRoute,
+  OnboardingRoute: OnboardingRoute,
+  PessoalRoute: PessoalRoute,
   RoadmapRoute: RoadmapRoute,
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
