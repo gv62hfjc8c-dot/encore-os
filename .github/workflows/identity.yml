@@ -1,7 +1,7 @@
 name: Identity foundation
 on:
   push:
-    branches: [main, "feat/identity-*"]
+    branches: [main, "feat/identity-*", "feat/work-*"]
   pull_request:
 permissions:
   contents: read
@@ -23,6 +23,6 @@ jobs:
         with:
           version: 2.117.0
       - run: supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor
-      - run: node --test tests/integration/supabase.mjs
+      - run: node --test --test-concurrency=1 tests/integration/*.mjs
       - if: always() && steps.supabase.outcome == 'success'
         run: supabase stop --no-backup
