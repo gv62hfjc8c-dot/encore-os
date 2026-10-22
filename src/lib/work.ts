@@ -103,3 +103,65 @@ export async function getVisiblePerformances() {
   if (error) throw error;
   return data ?? [];
 }
+
+/** Read a single performance through the same Person-scoped RLS as the list. */
+export async function getVisiblePerformanceById(id: string) {
+  const { data, error } = await supabase
+    .from("works")
+    .select("*")
+    .eq("id", id)
+    .eq("work_type", "performance")
+    .maybeSingle();
+
+  if (error) throw error;
+  return data;
+}
+
+/** Existing Work-scoped RPC enforces creator-only management. */
+export async function updatePerformance(
+  work: NonNullable<Awaited<ReturnType<typeof getVisiblePerformanceById>>>,
+  changes: { title: string; startsAt: string; endsAt: string },
+) {
+  if (!changes.title.trim() || changes.title.trim().length > 160) {
+    throw new Error("O título deve ter entre 1 e 160 caracteres.");
+  }
+  if (Date.parse(changes.endsAt) <= Date.parse(changes.startsAt)) {
+    throw new Error("O fim deve ser posterior ao início.");
+  }
+
+  const { error } = await supabase.rpc("update_work", {
+    p_work_id: work.id,
+    p_title: changes.title.trim(),
+    p_work_type: work.work_type,
+    p_status: work.status,
+    p_starts_at: changes.startsAt,
+    p_ends_at: changes.endsAt,
+    p_timezone: work.timezone,
+    p_organizer_person_id: work.organizer_person_id,
+    p_organizer_organization_id: work.organizer_organization_id,
+  });
+
+  if (error) throw error;
+}
+
+export async function getWorkBlocks(workId: string) {
+  const { data, error } = await supabase
+    .from("work_blocks")
+    .select("*")
+    .eq("work_id", workId)
+    .order("starts_at", { ascending: true });
+
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function getWorkParticipationCount(workId: string) {
+  const { count, error } = await supabase
+    .from("work_participations")
+    .select("id", { count: "exact", head: true })
+    .eq("work_id", workId);
+
+  if (error) throw error;
+  return count ?? 0;
+}
+

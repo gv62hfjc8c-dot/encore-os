@@ -1,4 +1,4 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import {
   MapPin,
@@ -29,35 +29,25 @@ import { toast } from "sonner";
 import { downloadCSV, downloadDoc } from "@/lib/export";
 import { usePersistedState } from "@/hooks/use-persisted-state";
 
+import { RealEspetaculoDetail } from "@/components/real-espetaculo-detail";
+
 export const Route = createFileRoute("/espetaculos/$id")({
-  loader: ({ params }) => {
-    const esp = espetaculos.find((e) => e.id === params.id);
-    if (!esp) throw notFound();
-    return { esp };
-  },
-  head: ({ loaderData }) => {
-    if (!loaderData)
-      return { meta: [{ title: "Espetáculo indisponível · Encore OS" }, { name: "robots", content: "noindex" }] };
-    const t = `${loaderData.esp.nome} · Encore OS`;
-    return {
-      meta: [
-        { title: t },
-        {
-          name: "description",
-          content: `${loaderData.esp.banda} em ${loaderData.esp.local} para ${loaderData.esp.cliente}.`,
-        },
-        { property: "og:title", content: t },
-        { property: "og:description", content: `Ficha operacional completa do espetáculo em ${loaderData.esp.local}.` },
-        { property: "og:type", content: "article" },
-        { name: "twitter:card", content: "summary_large_image" },
-      ],
-    };
-  },
+  ssr: false,
+  head: () => ({ meta: [{ title: "Espetáculo · Encore OS" }] }),
   component: EspetaculoDetalhe,
 });
 
 function EspetaculoDetalhe() {
-  const { esp } = Route.useLoaderData() as { esp: Espetaculo };
+  const { id } = Route.useParams();
+  const esp = espetaculos.find((item) => item.id === id);
+
+  return esp
+    ? <EspetaculoDemo esp={esp} />
+    : <RealEspetaculoDetail id={id} />;
+}
+
+/** Original Lovable view retained for existing demonstration links only. */
+function EspetaculoDemo({ esp }: { esp: Espetaculo }) {
   const [tab, setTab] = useState("resumo");
   const [novasMsgs, setNovasMsgs] = usePersistedState<typeof esp.mensagens>(`encore:chat:${esp.id}`, []);
   const [feitos, setFeitos] = useState<string[]>(
@@ -89,6 +79,9 @@ function EspetaculoDetalhe() {
 
   return (
     <>
+      <p className="mb-4 rounded border border-warning/30 bg-warning/10 p-3 text-sm text-warning">
+        Ficha demonstrativa do protótipo. Estes dados não correspondem a um Work real.
+      </p>
       <PageHeader
         breadcrumb={[{ label: "Espetáculos", to: "/espetaculos" }, { label: esp.nome }]}
         title={esp.nome}

@@ -178,7 +178,7 @@ function Espetaculos() {
               {resultados.map((work) => (
                 <tr key={work.id} className="group transition-colors hover:bg-accent/40">
                   <td className="px-5 py-3.5">
-                    <span className="font-medium">{work.title}</span>
+                    <Link to="/espetaculos/$id" params={{ id: work.id }} className="font-medium transition-colors group-hover:text-primary">{work.title}</Link>
                     <p className="text-xs text-muted-foreground">Atuação musical</p>
                   </td>
                   <td className="px-5 py-3.5">
