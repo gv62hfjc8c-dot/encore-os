@@ -137,8 +137,8 @@ export async function updatePerformance(
     p_starts_at: changes.startsAt,
     p_ends_at: changes.endsAt,
     p_timezone: work.timezone,
-    p_organizer_person_id: work.organizer_person_id ?? undefined,
-    p_organizer_organization_id: work.organizer_organization_id ?? undefined,
+    ...(work.organizer_person_id ? { p_organizer_person_id: work.organizer_person_id } : {}),
+    ...(work.organizer_organization_id ? { p_organizer_organization_id: work.organizer_organization_id } : {}),
   });
 
   if (error) throw error;
