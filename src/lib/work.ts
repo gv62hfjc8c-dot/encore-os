@@ -1,0 +1,89 @@
+import { supabase } from "@/integrations/supabase/client";
+
+export type CreateWorkInput = {
+  title: string;
+  workType: string;
+  startsAt: string;
+  endsAt: string;
+  timezone: string;
+  organizerPersonId?: string;
+  organizerOrganizationId?: string;
+};
+
+/**
+ * Work visibility is Person/Work scoped, not tenant-owned.
+ * PostgreSQL RLS determines which records are visible.
+ */
+export async function getVisibleWorks() {
+  const { data, error } = await supabase
+    .from("works")
+    .select("*")
+    .order("starts_at", { ascending: true });
+
+  if (error) throw error;
+  return data ?? [];
+}
+
+/**
+ * Organization context authorizes creation only.
+ * The resulting Work remains autonomous.
+ */
+export async function createWork(
+  organizationId: string,
+  input: CreateWorkInput,
+): Promise<string> {
+  if (!organizationId) {
+    throw new Error(
+      "É necessária uma organização ativa para criar um Work.",
+    );
+  }
+
+  const { data, error } = await supabase
+    .rpc("create_work", {
+      p_authorizing_organization_id: organizationId,
+      p_title: input.title.trim(),
+      p_work_type: input.workType.trim(),
+      p_starts_at: input.startsAt,
+      p_ends_at: input.endsAt,
+      p_timezone: input.timezone,
+      ...(input.organizerPersonId
+        ? { p_organizer_person_id: input.organizerPersonId }
+        : {}),
+      ...(input.organizerOrganizationId
+        ? {
+            p_organizer_organization_id:
+              input.organizerOrganizationId,
+          }
+        : {}),
+    })
+    .setHeader("x-organization-id", organizationId);
+
+  if (error) throw error;
+  if (!data) throw new Error("Não foi possível criar o Work.");
+
+  return data;
+}
+
+/**
+ * Adds a global Person to a Work.
+ * Authorization is enforced by the database RPC.
+ */
+export async function addWorkParticipant(
+  workId: string,
+  personId: string,
+): Promise<string> {
+  const { data, error } = await supabase.rpc(
+    "add_work_participant",
+    {
+      p_work_id: workId,
+      p_person_id: personId.trim(),
+    },
+  );
+
+  if (error) throw error;
+  if (!data) {
+    throw new Error("Não foi possível adicionar o participante.");
+  }
+
+  return data;
+}

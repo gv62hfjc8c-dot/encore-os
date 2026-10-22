@@ -228,7 +228,7 @@ export function IdentityGate({ children }: { children: ReactNode }) {
     );
   if (pathname === "/onboarding" || pathname.startsWith("/.lovable/"))
     return children;
-  if (!identity.organizations.length && pathname !== "/pessoal")
+  if (!identity.organizations.length && pathname !== "/pessoal" && pathname !== "/trabalhos")
     return (
       <main className="p-8">
         <h1>Bem-vindo ao Encore OS</h1>
@@ -242,7 +242,7 @@ export function IdentityGate({ children }: { children: ReactNode }) {
     <AppShell
       key={`${identity.session.user.id}:${identity.active?.id ?? "personal"}`}
     >
-      {pathname !== "/definicoes" && pathname !== "/pessoal" && (
+      {pathname !== "/definicoes" && pathname !== "/pessoal" && pathname !== "/trabalhos" && (
         <p className="mb-4 rounded border p-3 text-sm">
           Demonstração de interface — os dados operacionais são fictícios e não
           pertencem à organização selecionada.

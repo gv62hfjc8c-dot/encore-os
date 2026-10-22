@@ -64,6 +64,7 @@ const nav: { group: string; items: NavItem[] }[] = [
   {
     group: "Produção",
     items: [
+      { to: "/trabalhos", label: "Trabalhos", icon: CalendarDays },
       { to: "/espetaculos", label: "Espetáculos", icon: Sparkles },
       { to: "/live", label: "Modo ao vivo", icon: Radio },
       { to: "/encore-ai", label: "Encore AI", icon: Bot, badge: "AI" },
@@ -482,7 +483,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 const tabs: NavItem[] = [
   { to: "/", label: "Hoje", icon: Sun, exact: true },
   { to: "/agenda", label: "Agenda", icon: CalendarDays },
-  { to: "/espetaculos", label: "Espetáculos", icon: Sparkles },
+  { to: "/trabalhos", label: "Trabalhos", icon: CalendarDays },
   { to: "/repertorio", label: "Repertório", icon: ListMusicTab },
   { to: "/live", label: "Ao vivo", icon: Radio },
 ];

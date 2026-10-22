@@ -24,6 +24,7 @@ import { Route as McpRouteImport } from './routes/mcp'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as PessoalRouteImport } from './routes/pessoal'
 import { Route as RoadmapRouteImport } from './routes/roadmap'
+import { Route as TrabalhosRouteImport } from './routes/trabalhos'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as BandasIndexRouteImport } from './routes/bandas.index'
@@ -113,6 +114,11 @@ const PessoalRoute = PessoalRouteImport.update({
 const RoadmapRoute = RoadmapRouteImport.update({
   id: '/roadmap',
   path: '/roadmap',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TrabalhosRoute = TrabalhosRouteImport.update({
+  id: '/trabalhos',
+  path: '/trabalhos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const Char91DotmcpChar93ListToolsRoute =
@@ -210,6 +216,7 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof OnboardingRoute
   '/pessoal': typeof PessoalRoute
   '/roadmap': typeof RoadmapRoute
+  '/trabalhos': typeof TrabalhosRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/bandas/$id': typeof BandasIdRoute
@@ -242,6 +249,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRoute
   '/pessoal': typeof PessoalRoute
   '/roadmap': typeof RoadmapRoute
+  '/trabalhos': typeof TrabalhosRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/bandas/$id': typeof BandasIdRoute
@@ -275,6 +283,7 @@ export interface FileRoutesById {
   '/onboarding': typeof OnboardingRoute
   '/pessoal': typeof PessoalRoute
   '/roadmap': typeof RoadmapRoute
+  '/trabalhos': typeof TrabalhosRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/bandas/$id': typeof BandasIdRoute
@@ -309,6 +318,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/pessoal'
     | '/roadmap'
+    | '/trabalhos'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/bandas/$id'
@@ -341,6 +351,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/pessoal'
     | '/roadmap'
+    | '/trabalhos'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/bandas/$id'
@@ -373,6 +384,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/pessoal'
     | '/roadmap'
+    | '/trabalhos'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/bandas/$id'
@@ -406,6 +418,7 @@ export interface RootRouteChildren {
   OnboardingRoute: typeof OnboardingRoute
   PessoalRoute: typeof PessoalRoute
   RoadmapRoute: typeof RoadmapRoute
+  TrabalhosRoute: typeof TrabalhosRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   BandasIdRoute: typeof BandasIdRoute
@@ -528,6 +541,13 @@ declare module '@tanstack/react-router' {
       path: '/roadmap'
       fullPath: '/roadmap'
       preLoaderRoute: typeof RoadmapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/trabalhos': {
+      id: '/trabalhos'
+      path: '/trabalhos'
+      fullPath: '/trabalhos'
+      preLoaderRoute: typeof TrabalhosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/.mcp/list-tools': {
@@ -654,6 +674,7 @@ const rootRouteChildren: RootRouteChildren = {
   OnboardingRoute: OnboardingRoute,
   PessoalRoute: PessoalRoute,
   RoadmapRoute: RoadmapRoute,
+  TrabalhosRoute: TrabalhosRoute,
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,

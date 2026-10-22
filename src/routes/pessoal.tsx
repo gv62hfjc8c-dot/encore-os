@@ -14,6 +14,18 @@ function Personal() {
         A sua Person é global. Pode participar em várias organizações ou
         continuar sem nenhuma.
       </p>
+      {person && (
+        <div className="rounded-lg border border-border p-4">
+          <p className="mb-2 text-sm font-medium">
+            Identificador da Person
+          </p>
+          <p className="mb-2 text-xs text-muted-foreground">
+            Identificador técnico para testar a participação em Trabalhos.
+            Não é uma palavra-passe nem um token de autenticação.
+          </p>
+          <code className="block break-all text-sm">{person.id}</code>
+        </div>
+      )}
       <Link to="/onboarding">Criar organização ou aceitar convite</Link>
     </section>
   );
