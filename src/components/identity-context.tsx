@@ -199,6 +199,7 @@ export function IdentityProvider({ children }: { children: ReactNode }) {
 export function IdentityGate({ children }: { children: ReactNode }) {
   const identity = useIdentity();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const isRealWorkView = pathname === "/trabalhos" || pathname === "/espetaculos" || pathname === "/espetaculos/";
   if (pathname === "/auth") return children;
   if (identity.loading)
     return (
@@ -228,7 +229,7 @@ export function IdentityGate({ children }: { children: ReactNode }) {
     );
   if (pathname === "/onboarding" || pathname.startsWith("/.lovable/"))
     return children;
-  if (!identity.organizations.length && pathname !== "/pessoal" && pathname !== "/trabalhos")
+  if (!identity.organizations.length && pathname !== "/pessoal" && !isRealWorkView)
     return (
       <main className="p-8">
         <h1>Bem-vindo ao Encore OS</h1>
@@ -242,7 +243,7 @@ export function IdentityGate({ children }: { children: ReactNode }) {
     <AppShell
       key={`${identity.session.user.id}:${identity.active?.id ?? "personal"}`}
     >
-      {pathname !== "/definicoes" && pathname !== "/pessoal" && pathname !== "/trabalhos" && (
+      {pathname !== "/definicoes" && pathname !== "/pessoal" && !isRealWorkView && (
         <p className="mb-4 rounded border p-3 text-sm">
           Demonstração de interface — os dados operacionais são fictícios e não
           pertencem à organização selecionada.

@@ -87,3 +87,19 @@ export async function addWorkParticipant(
 
   return data;
 }
+
+
+/**
+ * The Espetáculos area is a performance-only view of global Works.
+ * RLS on works controls Person-scoped visibility.
+ */
+export async function getVisiblePerformances() {
+  const { data, error } = await supabase
+    .from("works")
+    .select("*")
+    .eq("work_type", "performance")
+    .order("starts_at", { ascending: true });
+
+  if (error) throw error;
+  return data ?? [];
+}
