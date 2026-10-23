@@ -200,7 +200,7 @@ export function IdentityGate({ children }: { children: ReactNode }) {
   const identity = useIdentity();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const isRealPerformanceDetail = /^\/espetaculos\/[0-9a-f]{8}-[0-9a-f-]{27,36}\/?$/i.test(pathname);
-  const isRealWorkView = pathname === "/trabalhos" || pathname === "/espetaculos" || pathname === "/espetaculos/" || isRealPerformanceDetail;
+  const isRealWorkView = pathname === "/trabalhos" || pathname === "/espetaculos" || pathname === "/espetaculos/" || pathname === "/espetaculos/novo" || isRealPerformanceDetail;
   if (pathname === "/auth") return children;
   if (identity.loading)
     return (

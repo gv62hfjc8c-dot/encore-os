@@ -91,8 +91,7 @@ function Espetaculos() {
               {espetaculos.isFetching ? "A atualizar…" : "Atualizar"}
             </button>
             <Link
-              to="/trabalhos"
-              title="Criação provisória na interface técnica de Work"
+              to="/espetaculos/novo"
               className="flex h-9 items-center gap-2 rounded-lg bg-primary px-3.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
             >
               <Plus className="h-4 w-4" /> Novo espetáculo
@@ -103,9 +102,8 @@ function Espetaculos() {
 
       <p className="mb-4 text-xs text-muted-foreground">
         Esta vista apresenta dados reais de Work. Cliente, local, preço e contrato
-        ainda não têm persistência; a ficha detalhada e os estados comerciais
-        serão integrados em incrementos seguintes. A criação usa temporariamente
-        a interface técnica de Trabalhos.
+        ainda não têm persistência; os estados comerciais serão integrados
+        em incrementos seguintes. O assistente cria atuações reais em rascunho.
       </p>
 
       <div className="mb-4 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 sm:flex sm:flex-wrap">

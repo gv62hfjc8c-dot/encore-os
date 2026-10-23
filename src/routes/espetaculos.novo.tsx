@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -7,30 +8,26 @@ import {
   CalendarDays,
   Check,
   Euro,
+  MapPin,
   Mic2,
   Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useIdentity } from "@/components/identity-context";
 import { PageHeader, Panel, Pill } from "@/components/ui-kit";
-import { bandas, clientes, formatEUR, HOJE } from "@/data/mock";
+import { createWork } from "@/lib/work";
+import { buildPerformanceInput, validPerformanceWindow } from "@/lib/performance-create";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/espetaculos/novo")({
+  ssr: false,
   head: () => ({
     meta: [
       { title: "Novo espetáculo · Encore OS" },
       {
         name: "description",
-        content:
-          "Criar um espetáculo em quatro passos: cliente, data e local, elenco e orçamento.",
+        content: "Criar uma atuação musical real, a partir da estrutura original do assistente.",
       },
-      { property: "og:title", content: "Novo espetáculo · Encore OS" },
-      {
-        property: "og:description",
-        content: "Fluxo guiado de criação de espetáculos no Encore OS.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: NovoEspetaculo,
@@ -43,50 +40,92 @@ const passos = [
   { n: 4, label: "Orçamento", icon: Euro },
 ];
 
-const tiposEvento = ["Festa popular", "Casamento", "Corporativo", "Festival", "Arraial", "Cocktail"];
+const inputCls =
+  "h-10 w-full rounded-lg border border-border bg-elevated/50 px-3 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-primary/50";
 
 function NovoEspetaculo() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { active } = useIdentity();
   const [passo, setPasso] = useState(1);
-
-  const [clienteId, setClienteId] = useState("");
   const [nome, setNome] = useState("");
-  const [tipoEvento, setTipoEvento] = useState(tiposEvento[0]!);
-  const [data, setData] = useState("");
-  const [hora, setHora] = useState("22:30");
-  const [local, setLocal] = useState("");
-  const [bandaId, setBandaId] = useState("");
-  const [preco, setPreco] = useState<number | "">("");
-  const [custos, setCustos] = useState<number | "">("");
-  const [notas, setNotas] = useState("");
+  const [inicio, setInicio] = useState("");
+  const [fim, setFim] = useState("");
+  const [erro, setErro] = useState<string | null>(null);
 
-  const cliente = clientes.find((c) => c.id === clienteId);
-  const banda = bandas.find((b) => b.id === bandaId);
-
-  const margem = useMemo(
-    () => (typeof preco === "number" ? preco : 0) - (typeof custos === "number" ? custos : 0),
-    [preco, custos],
+  // datetime-local interprets the times in the device timezone.
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+  const podeCriar = Boolean(
+    active &&
+      (active.membership.is_admin ||
+        active.membership.membership_type === "freelancer"),
   );
+  const nomeValido = nome.trim().length > 0 && nome.trim().length <= 160;
+  const datasValidas = validPerformanceWindow(inicio, fim);
+  const podeAvancar = passo === 1 ? nomeValido : passo === 2 ? datasValidas : true;
 
-  const podeAvancar =
-    (passo === 1 && !!clienteId && nome.trim().length > 2) ||
-    (passo === 2 && !!data && !!local.trim()) ||
-    (passo === 3 && !!bandaId) ||
-    (passo === 4 && typeof preco === "number" && preco > 0);
+  const criar = useMutation({
+    mutationFn: ({
+      organizationId,
+      name,
+      start,
+      end,
+    }: {
+      organizationId: string;
+      name: string;
+      start: string;
+      end: string;
+    }) =>
+      createWork(
+        organizationId,
+        buildPerformanceInput({
+          title: name,
+          startsAtLocal: start,
+          endsAtLocal: end,
+          timezone,
+        }),
+      ),
+    onSuccess: (id) => {
+      void queryClient.invalidateQueries({ queryKey: ["works"] });
+      toast.success("Espetáculo criado", {
+        description: "A atuação foi guardada como Work real, em rascunho.",
+      });
+      void navigate({ to: "/espetaculos/$id", params: { id } });
+    },
+  });
 
-  const submeter = () => {
-    toast.success("Espetáculo criado", {
-      description: `${nome} · ${new Date(data).toLocaleDateString("pt-PT")} · ${local}`,
+  function submeter() {
+    setErro(null);
+    if (!active || !podeCriar) {
+      setErro("Selecione uma organização em que seja administrador ou Freelancer para autorizar a criação.");
+      return;
+    }
+    try {
+      buildPerformanceInput({
+        title: nome,
+        startsAtLocal: inicio,
+        endsAtLocal: fim,
+        timezone,
+      });
+    } catch (error) {
+      setErro(error instanceof Error ? error.message : "Dados inválidos.");
+      return;
+    }
+
+    criar.mutate({
+      organizationId: active.id,
+      name: nome,
+      start: inicio,
+      end: fim,
     });
-    navigate({ to: "/espetaculos" });
-  };
+  }
 
   return (
     <>
       <PageHeader
         breadcrumb={[{ label: "Espetáculos", to: "/espetaculos" }, { label: "Novo" }]}
         title="Novo espetáculo"
-        description="Quatro passos. Tudo o resto — equipa, setlist, logística — nasce a partir daqui."
+        description="Quatro passos para criar uma atuação real. Os restantes dados serão associados gradualmente."
         actions={
           <Link
             to="/espetaculos"
@@ -97,7 +136,14 @@ function NovoEspetaculo() {
         }
       />
 
-      {/* Passos */}
+      {!podeCriar && (
+        <div className="mb-6 rounded-xl border border-warning/30 bg-warning/10 p-4 text-sm" role="status">
+          Para criar um espetáculo, selecione uma organização em que seja administrador ou Freelancer.
+          O contexto organizacional autoriza a criação; não passa a ser o proprietário do Work.{" "}
+          {!active && <Link to="/onboarding" className="text-primary underline">Criar organização</Link>}
+        </div>
+      )}
+
       <ol className="mb-6 grid grid-cols-2 gap-2 sm:grid-cols-4">
         {passos.map((p) => {
           const feito = passo > p.n;
@@ -105,6 +151,7 @@ function NovoEspetaculo() {
           return (
             <li
               key={p.n}
+              aria-current={ativo ? "step" : undefined}
               className={cn(
                 "flex items-center gap-2.5 rounded-xl border px-3 py-2.5 transition-colors",
                 ativo
@@ -142,126 +189,93 @@ function NovoEspetaculo() {
           {passo === 1 && (
             <div className="space-y-5">
               <Campo label="Cliente / organização">
-                <div className="grid gap-2 sm:grid-cols-2">
-                  {clientes.map((c) => (
-                    <button
-                      key={c.id}
-                      onClick={() => setClienteId(c.id)}
-                      className={cn(
-                        "rounded-xl border p-3 text-left transition-colors",
-                        clienteId === c.id
-                          ? "border-primary/50 bg-primary/10"
-                          : "border-border bg-elevated/40 hover:bg-elevated",
-                      )}
-                    >
-                      <p className="truncate text-sm font-medium">{c.nome}</p>
-                      <p className="truncate text-xs text-muted-foreground">
-                        {c.tipo} · {c.localidade}
-                      </p>
-                    </button>
-                  ))}
+                <div className="rounded-xl border border-dashed border-border bg-elevated/30 p-4">
+                  <p className="text-sm font-medium">Associação a cliente ainda não disponível</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    O catálogo de clientes do protótipo é demonstrativo. Não o utilizaremos para
+                    criar uma relação fictícia com o espetáculo.
+                  </p>
                 </div>
               </Campo>
               <Campo label="Nome do espetáculo">
                 <input
+                  autoFocus
                   value={nome}
-                  onChange={(e) => setNome(e.target.value)}
+                  onChange={(event) => setNome(event.target.value)}
                   placeholder="Ex.: Festas de São Pedro"
+                  maxLength={160}
+                  required
                   className={inputCls}
                 />
               </Campo>
-              <Campo label="Tipo de evento">
-                <div className="flex flex-wrap gap-2">
-                  {tiposEvento.map((t) => (
-                    <button
-                      key={t}
-                      onClick={() => setTipoEvento(t)}
-                      className={cn(
-                        "rounded-lg border px-3 py-1.5 text-xs transition-colors",
-                        tipoEvento === t
-                          ? "border-primary/50 bg-primary/10 text-foreground"
-                          : "border-border text-muted-foreground hover:text-foreground",
-                      )}
-                    >
-                      {t}
-                    </button>
-                  ))}
-                </div>
-              </Campo>
+              <p className="text-xs text-muted-foreground">
+                O tipo comercial de evento será integrado quando existir persistência própria.
+                Este registo será sempre um Work do tipo atuação musical.
+              </p>
             </div>
           )}
 
           {passo === 2 && (
             <div className="space-y-5">
               <div className="grid gap-4 sm:grid-cols-2">
-                <Campo label="Data">
+                <Campo label="Início da atuação">
                   <input
-                    type="date"
-                    min={HOJE}
-                    value={data}
-                    onChange={(e) => setData(e.target.value)}
+                    required
+                    type="datetime-local"
+                    value={inicio}
+                    onChange={(event) => setInicio(event.target.value)}
                     className={inputCls}
                   />
                 </Campo>
-                <Campo label="Hora de palco">
+                <Campo label="Fim da atuação">
                   <input
-                    type="time"
-                    value={hora}
-                    onChange={(e) => setHora(e.target.value)}
+                    required
+                    type="datetime-local"
+                    value={fim}
+                    onChange={(event) => setFim(event.target.value)}
                     className={inputCls}
                   />
                 </Campo>
               </div>
+              <div className="rounded-xl border border-border bg-elevated/40 p-3 text-sm">
+                <p className="flex items-center gap-2 font-medium">
+                  <CalendarDays className="h-4 w-4 text-primary" /> Fuso horário: {timezone}
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Os horários são interpretados no fuso do dispositivo. Se a atuação ocorrer
+                  noutro fuso horário, é necessário usar um dispositivo configurado para esse fuso
+                  nesta primeira versão do assistente.
+                </p>
+              </div>
               <Campo label="Local">
-                <input
-                  value={local}
-                  onChange={(e) => setLocal(e.target.value)}
-                  placeholder="Ex.: Praça do Peixe, Aveiro"
-                  className={inputCls}
-                />
-              </Campo>
-              <Campo label="Notas de produção (opcional)">
-                <textarea
-                  value={notas}
-                  onChange={(e) => setNotas(e.target.value)}
-                  rows={3}
-                  placeholder="Acessos, limite de ruído, palco coberto…"
-                  className={cn(inputCls, "resize-none")}
-                />
+                <div className="flex items-start gap-2 rounded-xl border border-dashed border-border p-3">
+                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground">
+                    O local ainda não possui persistência em Work. Será associado posteriormente,
+                    sem recorrer aos locais fictícios do protótipo.
+                  </p>
+                </div>
               </Campo>
             </div>
           )}
 
           {passo === 3 && (
-            <div className="space-y-3">
-              {bandas.map((b) => (
-                <button
-                  key={b.id}
-                  onClick={() => {
-                    setBandaId(b.id);
-                    if (preco === "") setPreco(b.cachetMedio);
-                  }}
-                  className={cn(
-                    "flex w-full items-center gap-3 rounded-xl border p-3 text-left transition-colors",
-                    bandaId === b.id
-                      ? "border-primary/50 bg-primary/10"
-                      : "border-border bg-elevated/40 hover:bg-elevated",
-                  )}
-                >
-                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-primary/15 text-xs font-semibold text-primary">
-                    {b.iniciais}
+            <div className="space-y-4">
+              <div className="rounded-xl border border-dashed border-border bg-elevated/30 p-5">
+                <div className="mb-3 flex items-center gap-3">
+                  <span className="grid h-9 w-9 place-items-center rounded-lg bg-primary/15">
+                    <Mic2 className="h-4 w-4 text-primary" />
                   </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-medium">{b.nome}</span>
-                    <span className="block truncate text-xs text-muted-foreground">
-                      {b.genero} · {b.membros} pessoas
-                    </span>
-                  </span>
-                  <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
-                    {formatEUR(b.cachetMedio)}
-                  </span>
-                </button>
-              ))}
+                  <p className="font-medium">Elenco a associar após a criação</p>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Ainda não existe uma ligação real entre Band, a sua equipa interna e Work.
+                  Não vamos atribuir bandas do protótipo nem criar participações externas sem consentimento.
+                </p>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Pode continuar e criar o espetáculo como rascunho, sem elenco associado.
+              </p>
             </div>
           )}
 
@@ -269,58 +283,49 @@ function NovoEspetaculo() {
             <div className="space-y-5">
               <div className="grid gap-4 sm:grid-cols-2">
                 <Campo label="Cachet (€)">
-                  <input
-                    type="number"
-                    inputMode="numeric"
-                    value={preco}
-                    onChange={(e) => setPreco(e.target.value === "" ? "" : Number(e.target.value))}
-                    placeholder="6800"
-                    className={inputCls}
-                  />
+                  <input disabled placeholder="Por implementar" className={cn(inputCls, "cursor-not-allowed opacity-60")} />
                 </Campo>
                 <Campo label="Custos diretos (€)">
-                  <input
-                    type="number"
-                    inputMode="numeric"
-                    value={custos}
-                    onChange={(e) => setCustos(e.target.value === "" ? "" : Number(e.target.value))}
-                    placeholder="2400"
-                    className={inputCls}
-                  />
+                  <input disabled placeholder="Por implementar" className={cn(inputCls, "cursor-not-allowed opacity-60")} />
                 </Campo>
               </div>
               <div className="rounded-xl border border-border bg-elevated/50 p-4">
                 <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
                   Margem estimada
                 </p>
-                <p
-                  className={cn(
-                    "mt-1 text-2xl font-semibold tabular-nums",
-                    margem >= 0 ? "text-success" : "text-destructive",
-                  )}
-                >
-                  {formatEUR(margem)}
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Disponível quando os valores financeiros tiverem persistência própria.
                 </p>
-                {cliente && (
-                  <p className="mt-2 text-xs text-muted-foreground">
-                    Pagamento: {cliente.prazoPagamento} · risco {cliente.risco.toLowerCase()}
-                  </p>
-                )}
               </div>
+              <p className="text-sm text-muted-foreground">
+                Ao confirmar, será criado um Work real de tipo <strong>performance</strong>,
+                com o estado operacional <strong>Rascunho</strong>, título e horários.
+                Não serão criados automaticamente clientes, bandas, contratos, checklists ou mensagens.
+              </p>
             </div>
+          )}
+
+          {erro && <p role="alert" className="mt-5 text-sm text-destructive">{erro}</p>}
+          {criar.error && (
+            <p role="alert" className="mt-5 text-sm text-destructive">
+              Não foi possível criar o espetáculo:{" "}
+              {criar.error instanceof Error ? criar.error.message : "Erro desconhecido"}
+            </p>
           )}
 
           <div className="mt-6 flex items-center justify-between gap-2 border-t border-border pt-5">
             <button
-              onClick={() => setPasso((p) => Math.max(1, p - 1))}
-              disabled={passo === 1}
+              type="button"
+              onClick={() => { setErro(null); setPasso((p) => Math.max(1, p - 1)); }}
+              disabled={passo === 1 || criar.isPending}
               className="flex h-9 items-center gap-2 rounded-lg border border-border bg-surface px-3 text-sm transition-colors hover:bg-elevated disabled:opacity-40"
             >
               <ArrowLeft className="h-3.5 w-3.5" /> Anterior
             </button>
             {passo < 4 ? (
               <button
-                onClick={() => setPasso((p) => p + 1)}
+                type="button"
+                onClick={() => { setErro(null); setPasso((p) => Math.min(4, p + 1)); }}
                 disabled={!podeAvancar}
                 className="flex h-9 items-center gap-2 rounded-lg bg-primary px-3.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
               >
@@ -328,36 +333,38 @@ function NovoEspetaculo() {
               </button>
             ) : (
               <button
+                type="button"
                 onClick={submeter}
-                disabled={!podeAvancar}
+                disabled={!podeCriar || !nomeValido || !datasValidas || criar.isPending}
                 className="flex h-9 items-center gap-2 rounded-lg bg-primary px-3.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
               >
-                <Sparkles className="h-3.5 w-3.5" /> Criar espetáculo
+                <Sparkles className="h-3.5 w-3.5" />
+                {criar.isPending ? "A guardar…" : "Criar espetáculo"}
               </button>
             )}
           </div>
         </Panel>
 
-        <Panel title="Resumo" subtitle="Atualiza à medida que preenche">
+        <Panel title="Resumo" subtitle="Dados que serão realmente guardados">
           <dl className="space-y-3 text-sm">
-            <Linha termo="Cliente" valor={cliente?.nome} />
-            <Linha termo="Espetáculo" valor={nome} />
-            <Linha termo="Tipo" valor={tipoEvento} />
-            <Linha
-              termo="Data"
-              valor={data ? `${new Date(data).toLocaleDateString("pt-PT")} · ${hora}` : undefined}
-            />
-            <Linha termo="Local" valor={local} />
-            <Linha termo="Elenco" valor={banda?.nome} />
-            <Linha termo="Cachet" valor={typeof preco === "number" ? formatEUR(preco) : undefined} />
+            <Linha termo="Espetáculo" valor={nome.trim()} />
+            <Linha termo="Tipo" valor="Atuação musical" />
+            <Linha termo="Início" valor={inicio ? inicio.replace("T", " ") : undefined} />
+            <Linha termo="Fim" valor={fim ? fim.replace("T", " ") : undefined} />
+            <Linha termo="Fuso horário" valor={timezone} />
+            <Linha termo="Estado" valor="Rascunho" />
+            <Linha termo="Cliente" valor="Por associar" />
+            <Linha termo="Local" valor="Por associar" />
+            <Linha termo="Elenco" valor="Por associar" />
+            <Linha termo="Orçamento" valor="Por definir" />
           </dl>
           <div className="mt-5 rounded-xl border border-dashed border-border p-4 text-xs leading-relaxed text-muted-foreground">
-            Ao criar, o Encore OS gera automaticamente a timeline operacional, as checklists por área
-            e o espaço de comunicação deste espetáculo.
+            O contexto organizacional é utilizado para autorizar a criação. O Work é autónomo
+            e as suas participações são geridas separadamente.
           </div>
           <div className="mt-4">
             <Pill tone={podeAvancar ? "success" : "warning"}>
-              {podeAvancar ? "Passo completo" : "Faltam campos neste passo"}
+              {podeAvancar ? "Pode continuar" : "Faltam dados neste passo"}
             </Pill>
           </div>
         </Panel>
@@ -365,9 +372,6 @@ function NovoEspetaculo() {
     </>
   );
 }
-
-const inputCls =
-  "h-10 w-full rounded-lg border border-border bg-elevated/50 px-3 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-primary/50";
 
 function Campo({ label, children }: { label: string; children: React.ReactNode }) {
   return (
