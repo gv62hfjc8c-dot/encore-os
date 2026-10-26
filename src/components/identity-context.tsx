@@ -231,7 +231,7 @@ export function IdentityGate({ children }: { children: ReactNode }) {
     );
   if (pathname === "/onboarding" || pathname.startsWith("/.lovable/"))
     return children;
-  if (!identity.organizations.length && pathname !== "/pessoal" && !isRealWorkView)
+  if (!identity.organizations.length && pathname !== "/pessoal" && pathname !== "/definicoes" && !isRealWorkView)
     return (
       <main className="p-8">
         <h1>Bem-vindo ao Encore OS</h1>
