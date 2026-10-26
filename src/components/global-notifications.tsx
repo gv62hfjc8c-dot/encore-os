@@ -37,7 +37,7 @@ export function NotificationsMenu() {
             onClick={() => setOpen(false)} className="fixed inset-0 z-40" />
           <div className="absolute right-0 z-50 mt-2 w-80 overflow-hidden rounded-xl border border-border bg-popover shadow-panel">
             <p className="border-b border-border px-4 py-2.5 text-xs font-medium">
-              Notificações {unread ? \`· \${unread} por ler\` : ""}
+              Notificações {unread ? `· ${unread} por ler` : ""}
             </p>
             {notifications.isPending && <p role="status" className="p-4 text-xs">A carregar notificações…</p>}
             {notifications.isError && <div className="p-4 text-xs" role="alert">
