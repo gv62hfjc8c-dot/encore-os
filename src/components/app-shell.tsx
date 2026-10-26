@@ -220,8 +220,6 @@ function CommandPalette({
     if (open) setQ("");
   }, [open]);
 
-  if (!open) return null;
-
   const { session } = useIdentity();
   const performances = useQuery({
     queryKey: ["works", session?.user.id, "performance"],
@@ -254,6 +252,8 @@ function CommandPalette({
       ].filter((item) => match(item.label)),
     },
   ].filter((group) => group.itens.length > 0);
+
+  if (!open) return null;
 
   return (
     <div className="fixed inset-0 z-[60] flex items-start justify-center px-4 pt-[12vh]">
