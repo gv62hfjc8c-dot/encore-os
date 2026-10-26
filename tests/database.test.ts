@@ -86,11 +86,22 @@ async function addParticipation(workId: string, authUserId: string) {
   );
 
   return await scalar<string>(
-    `insert into public.work_participations(work_id,person_id)
-     values($1,$2)
+    `insert into public.work_participations(work_id,person_id,accepted_at)
+     values($1,$2,now())
      returning id`,
     [workId, id],
   );
+}
+// Administrative fixture for tests about functions/blocks, not an application API.
+// A real participant is approved only through accept_work_invitation.
+async function seedAcceptedParticipation(workId: string, personId: string) {
+  await db.exec("reset role");
+  const id = await scalar<string>(
+    "insert into public.work_participations(work_id,person_id,accepted_at) values($1,$2,now()) returning id",
+    [workId, personId],
+  );
+  await db.exec("set role authenticated");
+  return id;
 }
 // A savepoint prevents an expected SQL failure from aborting the surrounding test.
 async function denied(sql: string, params: unknown[] = [], code?: string) {
@@ -966,29 +977,68 @@ describe("work domain integrity", () => {
 });
 
 describe("work management RPCs", () => {
-  it("lets the Work creator add an external Person as participant", async () => {
+  it("requires an accepted, email-bound invitation before external Work visibility", async () => {
     const org = await create();
     await asUser(alice, org.organization_id);
-
     const work = await createWork(org.organization_id);
     const evePerson = await personId(eve);
 
-    const participation = await scalar<string>(
-      "select public.add_work_participant($1,$2)",
-      [work, evePerson],
-    );
+    await denied("select public.add_work_participant($1,$2)", [work, evePerson], "42501");
 
-    expect(participation).toBeTruthy();
+    const invitation = (await db.query<{ invitation_id: string; token: string }>(
+      "select * from public.create_work_invitation($1,$2)",
+      [work, "eve@example.com"],
+    )).rows[0]!;
+    expect(invitation.token).toMatch(/^[a-f0-9]{64}$/);
 
     await asUser(eve);
+    expect(await scalar<boolean>("select public.can_view_work($1)", [work])).toBe(false);
+    expect(await scalar<number>("select count(*)::int from public.works where id=$1", [work])).toBe(0);
 
-    expect(
-      await scalar<boolean>("select public.can_view_work($1)", [work]),
-    ).toBe(true);
+    await asUser(bob);
+    await denied("select public.accept_work_invitation($1)", [invitation.token], "22023");
 
-    expect(
-      await scalar<boolean>("select public.can_manage_work($1)", [work]),
-    ).toBe(false);
+    await asUser(eve);
+    expect(await scalar<string>(
+      "select public.accept_work_invitation($1)", [invitation.token],
+    )).toBe(work);
+    expect(await scalar<boolean>("select public.can_view_work($1)", [work])).toBe(true);
+    expect(await scalar<boolean>("select public.can_manage_work($1)", [work])).toBe(false);
+    expect(await scalar<number>("select count(*)::int from public.works where id=$1", [work])).toBe(1);
+
+    await denied("select public.accept_work_invitation($1)", [invitation.token], "22023");
+  });
+
+  it("allows only the Work manager to create and revoke invitations", async () => {
+    const org = await create();
+    await asUser(alice, org.organization_id);
+    const work = await createWork(org.organization_id);
+    const invitation = (await db.query<{ invitation_id: string; token: string }>(
+      "select * from public.create_work_invitation($1,$2)", [work, "bob@example.com"],
+    )).rows[0]!;
+
+    await asUser(eve);
+    await denied("select * from public.create_work_invitation($1,$2)", [work, "eve@example.com"], "42501");
+    await denied("select public.revoke_work_invitation($1,$2)", [work, invitation.invitation_id], "42501");
+
+    await asUser(alice, org.organization_id);
+    await db.query("select public.revoke_work_invitation($1,$2)", [work, invitation.invitation_id]);
+
+    await asUser(bob);
+    await denied("select public.accept_work_invitation($1)", [invitation.token], "22023");
+    expect(await scalar<boolean>("select public.can_view_work($1)", [work])).toBe(false);
+  });
+
+  it("does not grandfather unaccepted legacy Work participants into access", async () => {
+    const org = await create();
+    await asUser(alice, org.organization_id);
+    const work = await createWork(org.organization_id);
+    const bobPerson = await personId(bob);
+    await db.exec("reset role");
+    await db.query("insert into public.work_participations(work_id,person_id) values($1,$2)", [work, bobPerson]);
+    await asUser(bob);
+    expect(await scalar<boolean>("select public.is_work_participant($1)", [work])).toBe(false);
+    expect(await scalar<number>("select count(*)::int from public.works where id=$1", [work])).toBe(0);
   });
 
   it("does not let a participant add another participant", async () => {
@@ -999,10 +1049,7 @@ describe("work management RPCs", () => {
     const bobPerson = await personId(bob);
     const evePerson = await personId(eve);
 
-    await db.query("select public.add_work_participant($1,$2)", [
-      work,
-      bobPerson,
-    ]);
+    await seedAcceptedParticipation(work, bobPerson);
 
     await asUser(bob);
 
@@ -1020,10 +1067,7 @@ describe("work management RPCs", () => {
     const work = await createWork(org.organization_id);
     const bobPerson = await personId(bob);
 
-    const participation = await scalar<string>(
-      "select public.add_work_participant($1,$2)",
-      [work, bobPerson],
-    );
+    const participation = await seedAcceptedParticipation(work, bobPerson);
 
     await db.query(
       "select public.add_work_participation_function($1,$2,$3)",
@@ -1054,10 +1098,7 @@ describe("work management RPCs", () => {
     const work = await createWork(org.organization_id);
     const bobPerson = await personId(bob);
 
-    const participation = await scalar<string>(
-      "select public.add_work_participant($1,$2)",
-      [work, bobPerson],
-    );
+    const participation = await seedAcceptedParticipation(work, bobPerson);
 
     const soundcheck = await scalar<string>(
       `select public.create_work_block(
@@ -1095,10 +1136,7 @@ describe("work management RPCs", () => {
     const work = await createWork(org.organization_id);
     const bobPerson = await personId(bob);
 
-    await db.query("select public.add_work_participant($1,$2)", [
-      work,
-      bobPerson,
-    ]);
+    await seedAcceptedParticipation(work, bobPerson);
 
     await asUser(bob);
 
@@ -1148,10 +1186,7 @@ describe("work management RPCs", () => {
 
     const bobPerson = await personId(bob);
 
-    const participationA = await scalar<string>(
-      "select public.add_work_participant($1,$2)",
-      [workA, bobPerson],
-    );
+    const participationA = await seedAcceptedParticipation(workA, bobPerson);
 
     const blockB = await scalar<string>(
       `select public.create_work_block(
@@ -1178,10 +1213,7 @@ describe("work management RPCs", () => {
     const work = await createWork(org.organization_id);
     const bobPerson = await personId(bob);
 
-    const participation = await scalar<string>(
-      "select public.add_work_participant($1,$2)",
-      [work, bobPerson],
-    );
+    const participation = await seedAcceptedParticipation(work, bobPerson);
 
     await db.query(
       "select public.add_work_participation_function($1,$2,$3)",
@@ -1271,10 +1303,7 @@ describe("work management RPCs", () => {
     const work = await createWork(org.organization_id);
     const bobPerson = await personId(bob);
 
-    await db.query("select public.add_work_participant($1,$2)", [
-      work,
-      bobPerson,
-    ]);
+    await seedAcceptedParticipation(work, bobPerson);
 
     await asUser(bob);
 

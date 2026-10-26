@@ -290,8 +290,60 @@ export type Database = {
           },
         ]
       }
+      work_invitations: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          created_by: string
+          email: string
+          expires_at: string
+          id: string
+          revoked_at: string | null
+          token_hash: string
+          work_id: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          created_by: string
+          email: string
+          expires_at?: string
+          id?: string
+          revoked_at?: string | null
+          token_hash: string
+          work_id: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          created_by?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          revoked_at?: string | null
+          token_hash?: string
+          work_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "work_invitations_work_id_fkey"
+            columns: ["work_id"]
+            isOneToOne: false
+            referencedRelation: "works"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_invitations_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "persons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       work_participations: {
         Row: {
+          accepted_at: string | null
           created_at: string
           id: string
           person_id: string
@@ -398,6 +450,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_work_invitation: {
+        Args: { p_token: string }
+        Returns: string
+      }
       accept_organization_invitation: {
         Args: { p_token: string }
         Returns: string
@@ -446,6 +502,10 @@ export type Database = {
           organization_id: string
           organization_name: string
         }[]
+      }
+      create_work_invitation: {
+        Args: { p_work_id: string; p_email: string }
+        Returns: { invitation_id: string; token: string }[]
       }
       create_organization_invitation: {
         Args: {
@@ -523,6 +583,10 @@ export type Database = {
           p_work_id: string
           p_work_participation_id: string
         }
+        Returns: undefined
+      }
+      revoke_work_invitation: {
+        Args: { p_work_id: string; p_invitation_id: string }
         Returns: undefined
       }
       revoke_organization_invitation: {

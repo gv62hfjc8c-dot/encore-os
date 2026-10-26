@@ -114,15 +114,35 @@ test("Work: real HTTP authorization and participation", async () => {
 
     assert.ifError(person.error);
 
-    const added = await rpc(
+    const directAdd = await rpc(
       creator,
       "add_work_participant",
-      {
-        p_work_id: workId,
-        p_person_id: person.data.id,
-      },
+      { p_work_id: workId, p_person_id: person.data.id },
     );
-    assert.ifError(added.error);
+    assert.equal(directAdd.error?.code, "42501");
+
+    const authUser = await participant.auth.getUser();
+    assert.ifError(authUser.error);
+    assert.ok(authUser.data.user?.email);
+    const inviteResult = await rpc(
+      creator,
+      "create_work_invitation",
+      { p_work_id: workId, p_email: authUser.data.user.email },
+    );
+    assert.ifError(inviteResult.error);
+    const token = inviteResult.data[0].token;
+    assert.ok(token);
+
+    const pendingRead = await participant.from("works").select("id").eq("id", workId);
+    assert.ifError(pendingRead.error);
+    assert.equal(pendingRead.data.length, 0);
+
+    const outsiderAccept = await rpc(outsider, "accept_work_invitation", { p_token: token });
+    assert.equal(outsiderAccept.error?.code, "22023");
+
+    const accepted = await rpc(participant, "accept_work_invitation", { p_token: token });
+    assert.ifError(accepted.error);
+    assert.equal(accepted.data, workId);
 
     const participantRead = await participant
       .from("works")

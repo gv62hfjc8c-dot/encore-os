@@ -65,26 +65,27 @@ export async function createWork(
 }
 
 /**
- * Adds a global Person to a Work.
- * Authorization is enforced by the database RPC.
+ * A Work manager issues a single-use code for an external Person.
+ * Visibility is only enabled after acceptance by the recipient's confirmed email.
  */
-export async function addWorkParticipant(
-  workId: string,
-  personId: string,
-): Promise<string> {
-  const { data, error } = await supabase.rpc(
-    "add_work_participant",
-    {
-      p_work_id: workId,
-      p_person_id: personId.trim(),
-    },
-  );
-
+export async function createWorkInvitation(workId: string, email: string) {
+  const { data, error } = await supabase.rpc("create_work_invitation", {
+    p_work_id: workId,
+    p_email: email.trim(),
+  });
   if (error) throw error;
-  if (!data) {
-    throw new Error("Não foi possível adicionar o participante.");
-  }
+  const invitation = data?.[0];
+  if (!invitation) throw new Error("Não foi possível criar o convite para o Work.");
+  return invitation;
+}
 
+/** Acceptance is global to a Person and does not require an Organization. */
+export async function acceptWorkInvitation(token: string) {
+  const { data, error } = await supabase.rpc("accept_work_invitation", {
+    p_token: token.trim(),
+  });
+  if (error) throw error;
+  if (!data) throw new Error("Não foi possível aceitar o convite para o Work.");
   return data;
 }
 
@@ -159,7 +160,8 @@ export async function getWorkParticipationCount(workId: string) {
   const { count, error } = await supabase
     .from("work_participations")
     .select("id", { count: "exact", head: true })
-    .eq("work_id", workId);
+    .eq("work_id", workId)
+    .not("accepted_at", "is", null);
 
   if (error) throw error;
   return count ?? 0;

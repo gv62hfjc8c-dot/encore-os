@@ -277,6 +277,7 @@ export function OrganizationSwitcher() {
         ))}
       </select>
       <div className="flex gap-3 text-xs">
+        <Link to="/pessoal">Espaço pessoal e convites</Link>
         <Link to="/onboarding">Criar / aceitar convite</Link>
         <button onClick={() => void signOut()}>Sair</button>
       </div>
