@@ -6,6 +6,7 @@ import { useIdentity } from "@/components/identity-context";
 import { PageHeader, Panel, Pill } from "@/components/ui-kit";
 import { getVisiblePerformances } from "@/lib/work";
 import { cn } from "@/lib/utils";
+import { formatWorkDateTime } from "@/lib/format";
 
 export const Route = createFileRoute("/espetaculos/")({
   ssr: false,
@@ -32,23 +33,6 @@ const nomesEstado: Record<string, string> = {
   completed: "Concluído",
   cancelled: "Cancelado",
 };
-
-function formatarData(data: string, fuso: string) {
-  const dataReal = new Date(data);
-  try {
-    return new Intl.DateTimeFormat("pt-PT", {
-      timeZone: fuso,
-      dateStyle: "short",
-      timeStyle: "short",
-    }).format(dataReal);
-  } catch {
-    return new Intl.DateTimeFormat("pt-PT", {
-      timeZone: "UTC",
-      dateStyle: "short",
-      timeStyle: "short",
-    }).format(dataReal) + " UTC";
-  }
-}
 
 function Espetaculos() {
   const { session, person } = useIdentity();
@@ -183,7 +167,7 @@ function Espetaculos() {
                     <Pill>{nomesEstado[work.status] ?? work.status}</Pill>
                   </td>
                   <td className="whitespace-nowrap px-5 py-3.5 text-muted-foreground">
-                    {formatarData(work.starts_at, work.timezone)}
+                    {formatWorkDateTime(work.starts_at, work.timezone, "short")}
                     <p className="text-[10px]">{work.timezone}</p>
                   </td>
                   {mostrarColunasComerciais && (

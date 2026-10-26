@@ -2,6 +2,7 @@ import { OrganizationSwitcher, useIdentity } from "./identity-context";
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { getVisiblePerformances } from "@/lib/work";
+import { formatWorkDateTime, formatWorkDate } from "@/lib/format";
 import { NotificationsMenu } from "./global-notifications";
 import {
   Sun,
@@ -181,13 +182,7 @@ function NavContent({ onNavigate }: { onNavigate?: () => void }) {
             <span className="min-w-0 flex-1">
               <span className="block text-xs font-medium">Próximo espetáculo</span>
               <span className="block truncate text-[10px] text-muted-foreground">
-                {next.title} · {new Intl.DateTimeFormat("pt-PT", {
-                  timeZone: next.timezone,
-                  day: "numeric",
-                  month: "short",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                }).format(new Date(next.starts_at))}
+                {next.title} · {formatWorkDateTime(next.starts_at, next.timezone, "short")}
               </span>
             </span>
             <ArrowRight className="h-3.5 w-3.5 shrink-0 text-primary" />
@@ -237,9 +232,7 @@ function CommandPalette({
         .map((work) => ({
           id: work.id,
           label: work.title,
-          hint: new Intl.DateTimeFormat("pt-PT", {
-            timeZone: work.timezone, dateStyle: "medium",
-          }).format(new Date(work.starts_at)),
+          hint: formatWorkDate(work.starts_at, work.timezone),
           to: `/espetaculos/${work.id}`,
         })),
     },

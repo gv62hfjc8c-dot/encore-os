@@ -10,6 +10,7 @@ import {
   getWorkParticipationCount,
   updatePerformance,
 } from "@/lib/work";
+import { formatWorkDateTime, deviceDateTime } from "@/lib/format";
 
 type Performance = NonNullable<Awaited<ReturnType<typeof getVisiblePerformanceById>>>;
 
@@ -46,22 +47,6 @@ const unavailableDescriptions: Record<string, string> = {
   timeline: "A timeline operacional do protótipo ainda não está persistida.",
   relatorios: "Os relatórios dependem de dados operacionais ainda não implementados.",
 };
-
-function formatDate(iso: string, timezone: string) {
-  return new Intl.DateTimeFormat("pt-PT", {
-    timeZone: timezone,
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(iso));
-}
-
-/** HTML datetime-local follows the device's timezone, not the Work's timezone. */
-function deviceDateTime(iso: string) {
-  const date = new Date(iso);
-  const pad = (value: number) => String(value).padStart(2, "0");
-  return [date.getFullYear(), pad(date.getMonth() + 1), pad(date.getDate())].join("-")
-    + "T" + [pad(date.getHours()), pad(date.getMinutes())].join(":");
-}
 
 export function RealEspetaculoDetail({ id }: { id: string }) {
   const { session, person } = useIdentity();
@@ -147,7 +132,7 @@ export function RealEspetaculoDetail({ id }: { id: string }) {
 
       <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {[
-          { icon: Clock, label: "Palco", value: formatDate(work.starts_at, work.timezone) },
+          { icon: Clock, label: "Palco", value: formatWorkDateTime(work.starts_at, work.timezone) },
           { icon: MapPin, label: "Local", value: "Não registado" },
           { icon: Euro, label: "Cachet", value: "Não registado" },
           {
@@ -184,8 +169,8 @@ export function RealEspetaculoDetail({ id }: { id: string }) {
                 <Field label="Espetáculo">{work.title}</Field>
                 <Field label="Tipo">Atuação musical</Field>
                 <Field label="Estado operacional">{operationalStates[work.status] ?? work.status}</Field>
-                <Field label="Início">{formatDate(work.starts_at, work.timezone)}</Field>
-                <Field label="Fim">{formatDate(work.ends_at, work.timezone)}</Field>
+                <Field label="Início">{formatWorkDateTime(work.starts_at, work.timezone)}</Field>
+                <Field label="Fim">{formatWorkDateTime(work.ends_at, work.timezone)}</Field>
                 <Field label="Fuso horário">{work.timezone}</Field>
                 <Field label="Cliente">Não registado</Field>
                 <Field label="Local">Não registado</Field>
@@ -238,8 +223,8 @@ export function RealEspetaculoDetail({ id }: { id: string }) {
                   <li key={block.id} className="py-3 first:pt-0 last:pb-0">
                     <p className="text-sm font-medium">{block.label}</p>
                     <p className="text-xs text-muted-foreground">
-                      {block.block_type} · {formatDate(block.starts_at, work.timezone)}
-                      {" – "}{formatDate(block.ends_at, work.timezone)}
+                      {block.block_type} · {formatWorkDateTime(block.starts_at, work.timezone)}
+                      {" – "}{formatWorkDateTime(block.ends_at, work.timezone)}
                     </p>
                   </li>
                 ))}
