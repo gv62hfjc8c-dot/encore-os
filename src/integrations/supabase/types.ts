@@ -157,6 +157,47 @@ export type Database = {
         }
         Relationships: []
       }
+      person_notifications: {
+        Row: {
+          id: string
+          person_id: string
+          kind: string
+          title: string
+          body: string | null
+          target_path: string | null
+          created_at: string
+          read_at: string | null
+        }
+        Insert: {
+          id?: string
+          person_id: string
+          kind: string
+          title: string
+          body?: string | null
+          target_path?: string | null
+          created_at?: string
+          read_at?: string | null
+        }
+        Update: {
+          id?: string
+          person_id?: string
+          kind?: string
+          title?: string
+          body?: string | null
+          target_path?: string | null
+          created_at?: string
+          read_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "person_notifications_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "persons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       person_preferences: {
         Row: {
           person_id: string

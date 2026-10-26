@@ -451,7 +451,7 @@ const tabs: NavItem[] = [
   { to: "/", label: "Hoje", icon: Sun, exact: true },
   { to: "/agenda", label: "Agenda", icon: CalendarDays },
   { to: "/espetaculos", label: "Espetáculos", icon: Sparkles },
-  { to: "/repertorio", label: "Repertório", icon: ListMusicTab },
+  { to: "/repertorio", label: "Repertório", icon: ListMusic },
   { to: "/live", label: "Ao vivo", icon: Radio },
 ];
 

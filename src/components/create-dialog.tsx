@@ -87,7 +87,7 @@ export function CreateDialog({
   description?: string;
   campos: Campo[];
   submitLabel?: string;
-  onSubmit: (valores: Record<string, string>) => void | Promise<void>;
+  onSubmit: (valores: Record<string, string>) => unknown | Promise<unknown>;
 }) {
   const [valores, setValores] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
