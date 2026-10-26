@@ -4,6 +4,7 @@ import { Link } from "@tanstack/react-router";
 import { Clock, MapPin, Euro, Users2, Pencil } from "lucide-react";
 import { useIdentity } from "@/components/identity-context";
 import { Field, PageHeader, Panel, Pill, Tabs } from "@/components/ui-kit";
+import { WorkParticipantForm } from "@/components/work-participant-form";
 import {
   getVisiblePerformanceById,
   getWorkBlocks,
@@ -204,9 +205,15 @@ export function RealEspetaculoDetail({ id }: { id: string }) {
               </p>
             )}
             <p className="mt-3 text-sm text-muted-foreground">
-              A apresentação das identidades, equipas específicas de Band e aceitação
-              de convites externos ainda está pendente.
+              A apresentação das identidades e a constituição de equipas específicas de Band
+              serão integradas quando esses módulos tiverem persistência real.
             </p>
+            {isManager && (
+              <div className="mt-5">
+                <WorkParticipantForm key={work.id}
+                  works={[{ id: work.id, title: work.title }]} />
+              </div>
+            )}
           </Panel>
         )}
 

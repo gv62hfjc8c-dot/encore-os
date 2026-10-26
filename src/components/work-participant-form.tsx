@@ -11,7 +11,7 @@ type WorkOption = {
 
 /** Invitation code only; direct addition of an external Person is forbidden. */
 export function WorkParticipantForm({ works }: { works: WorkOption[] }) {
-  const [workId, setWorkId] = useState("");
+  const [workId, setWorkId] = useState(works.length === 1 ? works[0]!.id : "");
   const [email, setEmail] = useState("");
   const [invitation, setInvitation] = useState<{
     invitation_id: string;
