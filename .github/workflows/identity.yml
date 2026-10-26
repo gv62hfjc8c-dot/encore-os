@@ -1,7 +1,7 @@
 name: Identity foundation
 on:
   push:
-    branches: [main, "feat/identity-*", "feat/work-*"]
+    branches: [main, "feat/identity-*", "feat/work-*", "feat/transversal-*"]
   pull_request:
 permissions:
   contents: read
