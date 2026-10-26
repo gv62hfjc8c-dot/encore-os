@@ -1324,3 +1324,71 @@ describe("work management RPCs", () => {
     );
   });
 });
+
+describe("transversal Person preferences and notifications", () => {
+  it("persists Person preferences without sharing them with another Person", async () => {
+    const aliceId = await personId(alice);
+    const bobId = await personId(bob);
+    await asUser(alice);
+
+    await db.query(
+      "insert into public.person_preferences(person_id,theme,reduce_motion) values($1,'light',true)",
+      [aliceId],
+    );
+    expect(await scalar<string>(
+      "select theme from public.person_preferences where person_id=$1", [aliceId]
+    )).toBe("light");
+
+    await denied(
+      "insert into public.person_preferences(person_id,theme) values($1,'light')",
+      [bobId], "42501",
+    );
+    await asUser(bob);
+    expect(await scalar<number>(
+      "select count(*)::int from public.person_preferences"
+    )).toBe(0);
+    await db.query(
+      "insert into public.person_preferences(person_id,theme) values($1,'dark')",
+      [bobId],
+    );
+    expect(await scalar<number>(
+      "select count(*)::int from public.person_preferences"
+    )).toBe(1);
+    await asUser(alice);
+    expect(await scalar<number>(
+      "select count(*)::int from public.person_preferences"
+    )).toBe(1);
+  });
+
+  it("hides other Persons' notifications and forbids direct notification creation", async () => {
+    const aliceId = await personId(alice);
+    const bobId = await personId(bob);
+    await asUser(alice);
+    await denied(
+      "insert into public.person_notifications(person_id,kind,title) values($1,'work','Spoofed')",
+      [aliceId],
+      "42501",
+    );
+
+    await db.exec("reset role");
+    const id = await scalar<string>(
+      "insert into public.person_notifications(person_id,kind,title,target_path) values($1,'work','Accepted invite','/pessoal') returning id",
+      [aliceId],
+    );
+    await asUser(alice);
+    expect(await scalar<number>("select count(*)::int from public.person_notifications")).toBe(1);
+    await db.query("update public.person_notifications set read_at=now() where id=$1", [id]);
+    expect(await scalar<boolean>("select read_at is not null from public.person_notifications where id=$1", [id])).toBe(true);
+
+    await asUser(bob);
+    expect(await scalar<number>("select count(*)::int from public.person_notifications")).toBe(0);
+    await db.query("update public.person_notifications set read_at=null where id=$1", [id]);
+    await asUser(alice);
+    expect(await scalar<boolean>("select read_at is not null from public.person_notifications where id=$1", [id])).toBe(true);
+    await asUser(bob);
+    await denied(
+      "insert into public.person_notifications(person_id,kind,title) values($1,'work','Fake')",
+      [bobId], "42501",
+    );
+  });
+});

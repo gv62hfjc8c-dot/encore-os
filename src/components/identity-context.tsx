@@ -18,6 +18,7 @@ import {
 } from "@/lib/identity";
 import { chooseOrganization, contextStorageKey } from "@/lib/identity-state";
 import { AppShell } from "./app-shell";
+import { ApplyAppearancePreferences } from "./appearance-settings";
 
 type Identity = {
   session: Session | null;
@@ -244,6 +245,7 @@ export function IdentityGate({ children }: { children: ReactNode }) {
     <AppShell
       key={`${identity.session.user.id}:${identity.active?.id ?? "personal"}`}
     >
+      <ApplyAppearancePreferences />
       {pathname !== "/definicoes" && pathname !== "/pessoal" && !isRealWorkView && (
         <p className="mb-4 rounded border p-3 text-sm">
           Demonstração de interface — os dados operacionais são fictícios e não

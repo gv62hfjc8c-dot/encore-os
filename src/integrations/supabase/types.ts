@@ -157,6 +157,35 @@ export type Database = {
         }
         Relationships: []
       }
+      person_preferences: {
+        Row: {
+          person_id: string
+          theme: string
+          reduce_motion: boolean
+          updated_at: string
+        }
+        Insert: {
+          person_id: string
+          theme?: string
+          reduce_motion?: boolean
+          updated_at?: string
+        }
+        Update: {
+          person_id?: string
+          theme?: string
+          reduce_motion?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "person_preferences_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: true
+            referencedRelation: "persons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       persons: {
         Row: {
           auth_user_id: string

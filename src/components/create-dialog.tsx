@@ -87,12 +87,15 @@ export function CreateDialog({
   description?: string;
   campos: Campo[];
   submitLabel?: string;
-  onSubmit: (valores: Record<string, string>) => void;
+  onSubmit: (valores: Record<string, string>) => void | Promise<void>;
 }) {
   const [valores, setValores] = useState<Record<string, string>>({});
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (open) {
+      setError(null);
       setValores(Object.fromEntries(campos.map((c) => [c.nome, c.defaultValue ?? (c.tipo === "select" ? c.opcoes?.[0] ?? "" : "")])));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -116,18 +119,27 @@ export function CreateDialog({
             Cancelar
           </button>
           <button
-            disabled={!valido}
-            onClick={() => {
-              onSubmit(valores);
-              onClose();
+            disabled={!valido || busy}
+            onClick={async () => {
+              setBusy(true);
+              setError(null);
+              try {
+                await onSubmit(valores);
+                onClose();
+              } catch (e) {
+                setError(e instanceof Error ? e.message : "Não foi possível guardar.");
+              } finally {
+                setBusy(false);
+              }
             }}
             className="h-9 rounded-lg bg-primary px-3.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
           >
-            {submitLabel}
+            {busy ? "A guardar…" : submitLabel}
           </button>
         </>
       }
     >
+      {error && <p role="alert" className="mb-3 text-sm text-destructive">{error}</p>}
       <div className="grid gap-4 sm:grid-cols-2">
         {campos.map((c) => (
           <label key={c.nome} className={cn("block min-w-0", (c.colSpan ?? 1) === 2 && "sm:col-span-2")}>

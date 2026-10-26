@@ -221,3 +221,10 @@
     }
   }
 }
+
+/* Personal reduced-motion preference, independent of OS accessibility preference. */
+.reduced-motion *, .reduced-motion *::before, .reduced-motion *::after {
+  animation-duration: 0.01ms !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}

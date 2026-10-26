@@ -3,6 +3,7 @@ import { useState, type FormEvent } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useIdentity } from "@/components/identity-context";
 import { acceptWorkInvitation } from "@/lib/work";
+import { updateMyProfile } from "@/lib/person-settings";
 
 export const Route = createFileRoute("/pessoal")({
   ssr: false,
@@ -37,6 +38,8 @@ function Personal() {
         A sua Person é global. Pode participar em várias organizações ou
         continuar sem nenhuma.
       </p>
+
+      <EditPersonalProfile />
 
       <div className="max-w-xl rounded-lg border border-border p-4">
         <h2 className="font-medium">Aceitar convite para um trabalho</h2>
@@ -82,5 +85,42 @@ function Personal() {
       )}
       <Link to="/onboarding" className="text-primary underline">Criar organização ou aceitar convite organizacional</Link>
     </section>
+  );
+}
+
+function EditPersonalProfile() {
+  const { person, refresh } = useIdentity();
+  const [first, setFirst] = useState(person?.first_name ?? "");
+  const [last, setLast] = useState(person?.last_name ?? "");
+  const mutation = useMutation({
+    mutationFn: async () => {
+      if (!person) throw new Error("Person indisponível.");
+      await updateMyProfile(person.id, first, last);
+    },
+    onSuccess: () => void refresh(),
+  });
+  if (!person) return null;
+  return (
+    <div className="max-w-xl rounded-lg border border-border p-4">
+      <h2 className="font-medium">Dados pessoais</h2>
+      <form className="mt-3 space-y-3" onSubmit={(event) => {
+        event.preventDefault();
+        mutation.mutate();
+      }}>
+        <label className="block text-sm">Nome
+          <input value={first} onChange={(event) => setFirst(event.target.value)}
+            maxLength={120} className="mt-1 w-full rounded-lg border border-border bg-background p-2" />
+        </label>
+        <label className="block text-sm">Apelido
+          <input value={last} onChange={(event) => setLast(event.target.value)}
+            maxLength={120} className="mt-1 w-full rounded-lg border border-border bg-background p-2" />
+        </label>
+        {mutation.isError && <p role="alert" className="text-sm text-destructive">{mutation.error.message}</p>}
+        <button type="submit" disabled={mutation.isPending}
+          className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50">
+          {mutation.isPending ? "A guardar…" : "Guardar perfil"}
+        </button>
+      </form>
+    </div>
   );
 }
